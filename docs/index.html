@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+  <title>Reusable Plots Page</title>
+  <style>
+    .chart {
+      width: 600px;
+      height: 400px;
+    }
+    .chart-container {
+      border: 1px solid black;
+      margin: 20px;
+      padding: 10px;
+      border-radius: 10px;
+      width:600px;
+    }
+    body {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif
+    }
+    .axisLabel{
+        font-family:'Times New Roman', Times, serif;
+    }
+    .titleLabel.axisLabel{
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-size: 20px;
+        font-weight:500;
+        }
+    .ticks{
+        font-size: 12px;
+        font-weight:100;
+    }
+    #chart2-svg .ticks{ 
+        font-size: 10px;
+    }
+    .legendText{
+        font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+    <div class="chart-container">
+      <button onclick="saveChart('chart3-svg')">Download Chart</button>
+      <div class="chart" id="chart3"></div>
+    </div>
+  <div class="chart-container">
+    <button onclick="saveChart('chart1-svg')">Download Chart</button>
+    <div class="chart" id="chart1"></div>
+  </div>
+  <div class="chart-container">
+    <button onclick="saveChart('chart2-svg')">Download Chart</button>
+    <div class="chart" id="chart2"></div>
+  </div>
+  <div class="chart-container">
+    <button onclick="saveChart('chart4-svg')">Download Chart</button>
+    <div class="chart" id="chart4"></div>
+  </div>
+  <script src="bundle.js"></script>
+</body>
