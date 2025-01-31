@@ -554,10 +554,10 @@
         : creatorInherit)(fullname);
   }
 
-  function none() {}
+  function none$2() {}
 
   function selector(selector) {
-    return selector == null ? none : function() {
+    return selector == null ? none$2 : function() {
       return this.querySelector(selector);
     };
   }
@@ -5465,6 +5465,76 @@
     return line;
   }
 
+  function none$1(series, order) {
+    if (!((n = series.length) > 1)) return;
+    for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
+      s0 = s1, s1 = series[order[i]];
+      for (j = 0; j < m; ++j) {
+        s1[j][1] += s1[j][0] = isNaN(s0[j][1]) ? s0[j][0] : s0[j][1];
+      }
+    }
+  }
+
+  function none(series) {
+    var n = series.length, o = new Array(n);
+    while (--n >= 0) o[n] = n;
+    return o;
+  }
+
+  function stackValue(d, key) {
+    return d[key];
+  }
+
+  function stackSeries(key) {
+    const series = [];
+    series.key = key;
+    return series;
+  }
+
+  function stack() {
+    var keys = constant([]),
+        order = none,
+        offset = none$1,
+        value = stackValue;
+
+    function stack(data) {
+      var sz = Array.from(keys.apply(this, arguments), stackSeries),
+          i, n = sz.length, j = -1,
+          oz;
+
+      for (const d of data) {
+        for (i = 0, ++j; i < n; ++i) {
+          (sz[i][j] = [0, +value(d, sz[i].key, j, data)]).data = d;
+        }
+      }
+
+      for (i = 0, oz = array(order(sz)); i < n; ++i) {
+        sz[oz[i]].index = i;
+      }
+
+      offset(sz, oz);
+      return sz;
+    }
+
+    stack.keys = function(_) {
+      return arguments.length ? (keys = typeof _ === "function" ? _ : constant(Array.from(_)), stack) : keys;
+    };
+
+    stack.value = function(_) {
+      return arguments.length ? (value = typeof _ === "function" ? _ : constant(+_), stack) : value;
+    };
+
+    stack.order = function(_) {
+      return arguments.length ? (order = _ == null ? none : typeof _ === "function" ? _ : constant(Array.from(_)), stack) : order;
+    };
+
+    stack.offset = function(_) {
+      return arguments.length ? (offset = _ == null ? none$1 : _, stack) : offset;
+    };
+
+    return stack;
+  }
+
   function Transform(k, x, y) {
     this.k = k;
     this.x = x;
@@ -6009,7 +6079,7 @@
         .text(yLabel);
         
         if (title) {
-          console.log(title);
+          // console.log(title);
           selection
             .selectAll(".titleLabel")
             .data([null])
@@ -6217,7 +6287,7 @@
     const my = (selection) => {
       selection.attr("width", width).attr("height", height);
 
-      console.log(selection);
+     //console.log(selection);
       const backgroundRect = selection
         .selectAll(".backgroundRect")
         .data([null])
@@ -6278,7 +6348,7 @@
         .range([height - margin.bottom, margin.top]);
 
       let xScale;
-      console.log(filteredData);
+      //console.log(filteredData);
       if (xType === "time") {
         xScale = time()
           .domain(extent(filteredData, xValue))
@@ -6295,7 +6365,7 @@
           x: xScale(xValue(d)),
           y: yScale(series.yValue(d)),
         }));
-        console.log(lineData);
+        //console.log(lineData);
         let lineGenerator;
         if (curveType) {
           lineGenerator = line((d) => d.x)
@@ -6312,9 +6382,9 @@
             (enter) => {
               const path = enter
                 .append("path")
-                .attr("id", `path${i}`)
+                .attr("id", `#lineChartPath${i}`)
                 .attr("d", null)
-                .attr("class", (d) => console.log(d))
+                .attr("id", `lineChartPath${i}`)
                 .attr("fill", "none")
                 .attr("stroke", colorList[i])
                 .attr("stroke-width", "3px")
@@ -6343,60 +6413,6 @@
           .attr("stroke-width", "0.25px");
       });
 
-      // const circles = selection
-      //   .selectAll(".pointCircles")
-      //   .data(marks)
-      //   .join(
-      //     (enter) =>
-      //       enter
-      //         .append("circle")
-      //         .attr("class", "pointCircles")
-      //         .attr("cx", (d) => d.x)
-      //         .attr("cy", (d) => d.y)
-      //         .attr("fill", (d) => d.color)
-      //         .attr("stroke", "black")
-      //         .attr("stroke-width", 0.5)
-      //         .attr("r", 0)
-      //         .on("mouseover", (event, d) => {
-      //           if (d.tooltip) {
-      //             tooltip = d3.select("#tooltip");
-      //             tooltip
-      //               .html(d.tooltip)
-      //               .style("left", `${event.pageX + 5}px`)
-      //               .style("top", `${event.pageY - 28}px`);
-      //             tooltip.transition().duration(200).style("opacity", 0.9);
-      //           }
-      //         })
-      //         .on("mouseout", (event, d) => {
-      //           if (d.tooltip) {
-      //             tooltip = d3.select("#tooltip");
-      //             tooltip.transition().duration(200).style("opacity", 0);
-      //           }
-      //         })
-      //         .on("click", (event, d) => {
-      //           additionalClickFunction(event, d);
-      //         })
-      //         .call((enter) => enter.transition(t).attr("r", (d) => d.r)),
-      //     (update) =>
-      //       update.call((update) =>
-      //         update
-      //           .transition(t)
-      //           .delay((d, i) => i * 8)
-      //           .attr("cx", (d) => d.x)
-      //           .attr("cy", (d) => d.y)
-      //           .attr("fill", (d) => d.color)
-      //       ),
-      //     (exit) => exit.remove()
-      //   );
-
-      //  .join("circle")
-      //  .attr("class", "pointCircles")
-      //  .attr("cx", (d) => d.x)
-      //  .attr("cy", (d) => d.y)
-      //  .attr("r", (d) => d.r)
-      //  .attr("fill", (d) => d.color)
-      //  .attr("stroke", "black")
-      //  .attr("stroke-width", 0.5);
 
       selection
         .selectAll("g.yAxis")
@@ -6437,7 +6453,7 @@
         .text(yLabel);
 
       if (title) {
-        console.log(title);
+        //console.log(title);
         selection
           .selectAll(".titleLabel")
           .data([null])
@@ -6526,9 +6542,10 @@
     let ySeries;
     let x;
     let y;
-
+    let legendTitle;
+    let pointType = "circle";
     const my = (selection) => {
-      console.log(selection);
+      //console.log(selection);
 
       // const selection = d3.select("chart").append(svg)
       const legend = selection
@@ -6552,29 +6569,70 @@
         .attr("stroke", "black")
         .attr("stroke-width", "0.25px");
 
-      console.log(ySeries);
-  const yPos = (d, i) => {return (i+1)* (height/(ySeries.length+1))};
+      //console.log(ySeries);
 
-      legend
-        .selectAll(".legendCircles")
-        .data(ySeries)
-        .join("circle")
-        .attr("class", "legendCircles")
-        .attr("cx", 10)
-        .attr("cy", yPos)
-        .attr("r", 6)
-        .attr("fill", (d) => d.color);
+      if (legendTitle) {
+        legend
+          .selectAll(".legendTitle")
+          .data([null])
+          .join("text")
+          .attr("class", "legendTitle axislabel")
+          .attr("x", width / 2)
+          .attr("y", 15)
+          .attr("text-anchor", "middle")
+          .text(legendTitle);
+      }
+      const legendPoints = legend
+        .selectAll("g")
+        .data([0])
+        .join("g")
+        .attr("transform", `translate(0, ${legendTitle ? 8 : 0})`);
 
-      legend
-        .selectAll(".legendText")
-        .data(ySeries)
-        .join("text")
-        .attr("x", 20)
-        .attr("y", yPos)
-        .attr("class", "legendText")
-        .attr('dominant-baseline', 'middle')
-        .attr('dy', '0.1em')
-        .text((d) => d.title);
+      const yPos = (d, i) => {
+        return (i + 1) * (height / (ySeries.length + 1));
+      };
+      if (pointType == "circle") {
+        legendPoints
+          .selectAll(".legendPoints")
+          .data(ySeries)
+          .join(pointType)
+          .attr("class", "legendPoints")
+          .attr("cx", 10)
+          .attr("cy", yPos)
+          .attr("r", 6)
+          .attr("fill", (d) => d.color);
+        legendPoints
+          .selectAll(".legendText")
+          .data(ySeries)
+          .join("text")
+          .attr("x", 20)
+          .attr("y", yPos)
+          .attr("class", "legendText")
+          .attr("dominant-baseline", "middle")
+          .attr("dy", "0.1em")
+          .text((d) => d.title);
+      } else {
+        legendPoints
+          .selectAll(".legendPoints")
+          .data(ySeries)
+          .join("rect")
+          .attr("class", "legendPoints")
+          .attr("x", 10)
+          .attr("y", yPos)
+          .attr("width", 10)
+          .attr("height", 10)
+          .attr("fill", (d) => d.color);
+        legendPoints
+          .selectAll(".legendText")
+          .data(ySeries)
+          .join("text")
+          .attr("x", 25)
+          .attr("y", yPos)
+          .attr("class", "legendText")
+          .attr("dominant-baseline", "middle")
+          .attr("dy", "0.5em")
+          .text((d) => d.title);
+      }
     };
 
     my.width = function (_) {
@@ -6598,7 +6656,143 @@
     my.y = function (_) {
       return arguments.length ? ((y = _), my) : y;
     };
+    my.legendTitle = function (_) {
+      return arguments.length ? ((legendTitle = _), my) : legendTitle;
+    };
+    my.pointType = function (_) {
+      return arguments.length ? ((pointType = _), my) : pointType;
+    };
 
+    return my;
+  };
+
+  const stackedBarChart = () => {
+    let width;
+    let height;
+    let data;
+    let subGroups;
+    let groups;
+    let title;
+    let margin = { top: 50, right: 50, bottom: 80, left: 80 };
+
+    let tooltipValue = (d, key) => ` ${key} : ${d.data[key]}`;
+
+    const my = (selection) => {
+      // selection.append("rect").attr("width", 100).attr("height", 100);
+
+      const subs = subGroups.map((d) => d.subgroup);
+      const sums = data.map(d =>
+          subs.reduce((sum, key) => sum + Number(d[key]), 0)
+        );
+      const maxY = max(sums);
+
+      const xScale = band()
+        .domain(groups)
+        .range([margin.left, width - margin.right])
+        .padding(0.2);
+
+      const colorScale = ordinal()
+        .domain(subs)
+        .range(subGroups.map((d) => d.color));
+
+      const yScale = linear()
+        .domain([0, maxY])
+        .range([height - margin.bottom, margin.bottom]);
+
+      let tooltip;
+
+      tooltip = select("#tooltip");
+      if (!tooltip) {
+        tooltip = select("body").append("div").attr("id", "tooltip").attr("class", "tooltip");
+      }
+
+      const stackedData = stack().keys(subs)(data);
+
+      selection
+
+        .selectAll("g")
+        .data(stackedData)
+        .join("g")
+        .attr("fill", (d) => colorScale(d.key))
+        .each(function (d) {
+          select(this).attr("data-key", d.key);
+        })
+        .selectAll("rect")
+        .data((d) => d)
+        .join("rect")
+        .attr("x", (d) => xScale(d.data.group))
+        .attr("y", (d) => yScale(d[1]))
+        .attr("stroke", "black")
+        .attr("stroke-width", "0.5px")
+        .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
+        .attr("width", xScale.bandwidth())
+        .on("mouseover", function (event, d) {
+          
+          select(this).attr("opacity", 0.5);
+          const key = select(this.parentNode).attr("data-key");
+         
+          tooltip = select("#tooltip");
+          tooltip
+            .html(tooltipValue(d, key))
+            .style("left", `${event.pageX + 5}px`)
+            .style("top", `${event.pageY - 28}px`);
+          tooltip.transition().duration(200).style("opacity", 0.9);
+        })
+        .on("mouseout", function () {
+          select(this).attr("opacity", 1);
+          tooltip.style("opacity", 0).html("");
+        });
+
+      selection
+        .append("g")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(axisBottom(xScale));
+      selection
+        .append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(axisLeft(yScale));
+
+      if (title) {
+        // console.log(title);
+        selection
+          .selectAll(".titleLabel")
+          .data([null])
+          .join("text")
+          .attr("class", "axisLabel titleLabel")
+          .attr("x", width / 2)
+          .attr("y", margin.top / 2)
+          .attr("text-anchor", "middle")
+          .text(title);
+      }
+    };
+
+    my.width = function (_) {
+      return arguments.length ? ((width = +_), my) : width;
+    };
+
+    my.height = function (_) {
+      return arguments.length ? ((height = +_), my) : width;
+    };
+
+    my.data = function (_) {
+      return arguments.length ? ((data = _), my) : data;
+    };
+    my.subGroups = function (_) {
+      return arguments.length ? ((subGroups = _), my) : subGroups;
+    };
+
+    my.groups = function (_) {
+      return arguments.length ? ((groups = _), my) : groups;
+    };
+    my.margin = function (_) {
+      return arguments.length ? ((margin = _), my) : margin;
+    };
+    my.propotional = function (_) {
+      return arguments.length ? (my) : title;
+    };
+    my.title = function (_) {
+      return arguments?.length ? ((title = _), my) : title;
+    };
     return my;
   };
 
@@ -6627,6 +6821,7 @@
     "master/",
     "revenue.csv",
   ].join("");
+
   //define row preprocessing step (convert to numbers)
   const parseRow = (d) => {
     d["sepal.length"] = +d["sepal.length"];
@@ -6654,6 +6849,9 @@
   const margin = { top: 50, right: 50, bottom: 80, left: 50 };
 
   async function main() {
+    // ------------------  Section --------------------
+    // Scatter plot data,  calling and adding legend
+
     const data = await csv(csvURL, parseRow);
     data.map((d, i) => (d.id = `A${i}`));
     //console.log(data);
@@ -6669,8 +6867,8 @@
       .colorValue(colorValue)
       .margin(margin)
       .radius(5)
-      .xLabel("petal.length")
-      .yLabel("sepal.length")
+      .xLabel("Petal Length")
+      .yLabel("Sepal Length")
       .tooltipValue(tooltipValue)
       .title("Scatter Plot of Sepal Length vs Petal Length");
 
@@ -6688,7 +6886,6 @@
         color: "#fdcb6e",
       },
     ];
-    
 
     const chart1 = select("#" + chart1Id)
       .append("svg")
@@ -6705,6 +6902,8 @@
       .y(200);
     chart1.call(chart1Legend);
 
+    // ------------------  Section --------------------
+    // Bar  chart data and calling
 
     const chart2Id = "chart2";
 
@@ -6716,13 +6915,18 @@
       .yValue((d) => d["petal.length"])
       .margin(margin)
       .xLabel("ID")
-      .yLabel("petal length");
+      .yLabel("Petal Length")
+      .title(
+        "Bar chart showing the petal Length of irises referenced by an ID value"
+      );
 
     const chart2 = select("#" + chart2Id)
       .append("svg")
       .attr("id", chart2Id + "-svg");
     chart2.call(plot2);
 
+    // ------------------  Section --------------------
+    // Line chart data and calling
     const lineData = await csv(lineDataURL, parseRowLineData);
     console.log(lineData);
 
@@ -6743,6 +6947,7 @@
         color: "#fdcb6e",
       },
     ];
+
     const plot3 = lineChart()
       .width(widthHeight[0])
       .height(widthHeight[1])
@@ -6751,7 +6956,9 @@
       .ySeries(ySeries)
       .xLabel("ID")
       .xType("time")
-      .yLabel("petal length");
+      .yLabel("Not really sure what the value is...? ")
+      .title("Line chart showing example data about 3 different cities.");
+
     // .curveType(d3.curveBumpX);
 
     const chart3Id = "chart3";
@@ -6762,13 +6969,73 @@
     chart3.call(plot3);
     const lineLegend = legend()
       .width(80)
-      .height(50)
+      .height(80)
+
       .x(widthHeight[0] - 80)
       .y(50)
       .ySeries(ySeries)
       .backgroundColor("#e3e3e3")
       .backgroundOpacity(0.8);
+      // .legendTitle("City");
     chart3.call(lineLegend);
+
+    // ------------------  Section --------------------
+    // Stacked Bar chart data and calling
+
+    const stackedBarData = [
+      {
+        group: "Barry",
+        Maths: "42",
+        English: "12",
+        Chemistry: "3",
+      },
+      {
+        group: "Jessica",
+        Maths: "6",
+        English: "15",
+        Chemistry: "33",
+      },
+      {
+        group: "Steven",
+        Maths: "11",
+        English: "28",
+        Chemistry: "7",
+      },
+      {
+        group: "Lisa",
+        Maths: "14",
+        English: "6",
+        Chemistry: "23",
+      },
+    ];
+
+    const stackedSubGroups = [
+      { subgroup: "Maths", color: "#00b894", title: "Maths" },
+      { subgroup: "English", color: "#6c5ce7", title: "English" },
+      { subgroup: "Chemistry", color: "#fdcb6e", title: "Chemistry" },
+    ];
+    const stackedBarSvg = select("#chart4")
+      .append("svg")
+      .attr("id", "chart4-svg")
+      .attr("width", widthHeight[0])
+      .attr("height", widthHeight[1]);
+    const plot4 = stackedBarChart()
+      .data(stackedBarData)
+      .width(widthHeight[0])
+      .height(widthHeight[1])
+      .subGroups(stackedSubGroups)
+      .margin(margin)
+      .groups(stackedBarData.map((d) => d.group));
+
+    const stackedBarLegend = legend()
+      .ySeries(stackedSubGroups)
+      .x(400)
+      .y(40)
+      .width(100)
+      .height(80)
+      .pointType("rect").legendTitle("Subject");
+    stackedBarSvg.call(plot4);
+    stackedBarSvg.call(stackedBarLegend);
   }
   main();
 

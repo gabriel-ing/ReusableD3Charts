@@ -180,7 +180,7 @@ export const barChart = () => {
       .text(yLabel);
       
       if (title) {
-        console.log(title);
+        // console.log(title);
         selection
           .selectAll(".titleLabel")
           .data([null])

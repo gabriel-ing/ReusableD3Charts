@@ -40,11 +40,7 @@
   </style>
 </head>
 <body>
-    <div class="chart-container">
-        <button onclick="saveChart('chart5-svg')">Download Chart</button>
-        <div class="chart" id="chart5"></div>
-      </div>
-    <div class="chart-container">
+  <div class="chart-container">
     <button onclick="saveChart('chart1-svg')">Download Chart</button>
     <div class="chart" id="chart1"></div>
   </div>

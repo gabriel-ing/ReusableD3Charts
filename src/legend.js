@@ -8,9 +8,10 @@ export const legend = () => {
   let ySeries;
   let x;
   let y;
-
+  let legendTitle;
+  let pointType = "circle";
   const my = (selection) => {
-    console.log(selection);
+    //console.log(selection);
 
     // const selection = d3.select("chart").append(svg)
     const legend = selection
@@ -34,29 +35,70 @@ export const legend = () => {
       .attr("stroke", "black")
       .attr("stroke-width", "0.25px");
 
-    console.log(ySeries);
-const yPos = (d, i) => {return (i+1)* (height/(ySeries.length+1))}
+    //console.log(ySeries);
 
-    legend
-      .selectAll(".legendCircles")
-      .data(ySeries)
-      .join("circle")
-      .attr("class", "legendCircles")
-      .attr("cx", 10)
-      .attr("cy", yPos)
-      .attr("r", 6)
-      .attr("fill", (d) => d.color);
+    if (legendTitle) {
+      legend
+        .selectAll(".legendTitle")
+        .data([null])
+        .join("text")
+        .attr("class", "legendTitle axislabel")
+        .attr("x", width / 2)
+        .attr("y", 15)
+        .attr("text-anchor", "middle")
+        .text(legendTitle);
+    }
+    const legendPoints = legend
+      .selectAll("g")
+      .data([0])
+      .join("g")
+      .attr("transform", `translate(0, ${legendTitle ? 8 : 0})`);
 
-    legend
-      .selectAll(".legendText")
-      .data(ySeries)
-      .join("text")
-      .attr("x", 20)
-      .attr("y", yPos)
-      .attr("class", "legendText")
-      .attr('dominant-baseline', 'middle')
-      .attr('dy', '0.1em')
-      .text((d) => d.title);
+    const yPos = (d, i) => {
+      return (i + 1) * (height / (ySeries.length + 1));
+    };
+    if (pointType == "circle") {
+      legendPoints
+        .selectAll(".legendPoints")
+        .data(ySeries)
+        .join(pointType)
+        .attr("class", "legendPoints")
+        .attr("cx", 10)
+        .attr("cy", yPos)
+        .attr("r", 6)
+        .attr("fill", (d) => d.color);
+      legendPoints
+        .selectAll(".legendText")
+        .data(ySeries)
+        .join("text")
+        .attr("x", 20)
+        .attr("y", yPos)
+        .attr("class", "legendText")
+        .attr("dominant-baseline", "middle")
+        .attr("dy", "0.1em")
+        .text((d) => d.title);
+    } else {
+      legendPoints
+        .selectAll(".legendPoints")
+        .data(ySeries)
+        .join("rect")
+        .attr("class", "legendPoints")
+        .attr("x", 10)
+        .attr("y", yPos)
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", (d) => d.color);
+      legendPoints
+        .selectAll(".legendText")
+        .data(ySeries)
+        .join("text")
+        .attr("x", 25)
+        .attr("y", yPos)
+        .attr("class", "legendText")
+        .attr("dominant-baseline", "middle")
+        .attr("dy", "0.5em")
+        .text((d) => d.title);
+    }
   };
 
   my.width = function (_) {
@@ -79,6 +121,12 @@ const yPos = (d, i) => {return (i+1)* (height/(ySeries.length+1))}
   };
   my.y = function (_) {
     return arguments.length ? ((y = _), my) : y;
+  };
+  my.legendTitle = function (_) {
+    return arguments.length ? ((legendTitle = _), my) : legendTitle;
+  };
+  my.pointType = function (_) {
+    return arguments.length ? ((pointType = _), my) : pointType;
   };
 
   return my;

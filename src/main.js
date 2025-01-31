@@ -4,6 +4,7 @@ import { barChart } from "./barChart-trc";
 import saveChart from "./saveChart";
 import { lineChart } from "./LineChart-trc";
 import { legend } from "./legend";
+import { stackedBarChart } from "./StackedBar-trc";
 
 window.saveChart = saveChart;
 const getWidthHeight = (chartId) => {
@@ -30,6 +31,7 @@ const lineDataURL = [
   "master/",
   "revenue.csv",
 ].join("");
+
 //define row preprocessing step (convert to numbers)
 const parseRow = (d) => {
   d["sepal.length"] = +d["sepal.length"];
@@ -57,6 +59,9 @@ const tooltipValue = (d) => `<p>Sepal Length: ${d["sepal.length"]}<br>
 const margin = { top: 50, right: 50, bottom: 80, left: 50 };
 
 async function main() {
+  // ------------------  Section --------------------
+  // Scatter plot data,  calling and adding legend
+
   const data = await d3.csv(csvURL, parseRow);
   data.map((d, i) => (d.id = `A${i}`));
   //console.log(data);
@@ -72,8 +77,8 @@ async function main() {
     .colorValue(colorValue)
     .margin(margin)
     .radius(5)
-    .xLabel("petal.length")
-    .yLabel("sepal.length")
+    .xLabel("Petal Length")
+    .yLabel("Sepal Length")
     .tooltipValue(tooltipValue)
     .title("Scatter Plot of Sepal Length vs Petal Length");
 
@@ -91,7 +96,6 @@ async function main() {
       color: "#fdcb6e",
     },
   ];
-  
 
   const chart1 = d3
     .select("#" + chart1Id)
@@ -109,6 +113,8 @@ async function main() {
     .y(200);
   chart1.call(chart1Legend);
 
+  // ------------------  Section --------------------
+  // Bar  chart data and calling
 
   const chart2Id = "chart2";
 
@@ -120,7 +126,10 @@ async function main() {
     .yValue((d) => d["petal.length"])
     .margin(margin)
     .xLabel("ID")
-    .yLabel("petal length");
+    .yLabel("Petal Length")
+    .title(
+      "Bar chart showing the petal Length of irises referenced by an ID value"
+    );
 
   const chart2 = d3
     .select("#" + chart2Id)
@@ -128,6 +137,8 @@ async function main() {
     .attr("id", chart2Id + "-svg");
   chart2.call(plot2);
 
+  // ------------------  Section --------------------
+  // Line chart data and calling
   const lineData = await d3.csv(lineDataURL, parseRowLineData);
   console.log(lineData);
 
@@ -148,6 +159,7 @@ async function main() {
       color: "#fdcb6e",
     },
   ];
+
   const plot3 = lineChart()
     .width(widthHeight[0])
     .height(widthHeight[1])
@@ -156,7 +168,9 @@ async function main() {
     .ySeries(ySeries)
     .xLabel("ID")
     .xType("time")
-    .yLabel("petal length");
+    .yLabel("Not really sure what the value is...? ")
+    .title("Line chart showing example data about 3 different cities.");
+
   // .curveType(d3.curveBumpX);
 
   const chart3Id = "chart3";
@@ -168,12 +182,73 @@ async function main() {
   chart3.call(plot3);
   const lineLegend = legend()
     .width(80)
-    .height(50)
+    .height(80)
+
     .x(widthHeight[0] - 80)
     .y(50)
     .ySeries(ySeries)
     .backgroundColor("#e3e3e3")
-    .backgroundOpacity(0.8);
+    .backgroundOpacity(0.8)
+    // .legendTitle("City");
   chart3.call(lineLegend);
+
+  // ------------------  Section --------------------
+  // Stacked Bar chart data and calling
+
+  const stackedBarData = [
+    {
+      group: "Barry",
+      Maths: "42",
+      English: "12",
+      Chemistry: "3",
+    },
+    {
+      group: "Jessica",
+      Maths: "6",
+      English: "15",
+      Chemistry: "33",
+    },
+    {
+      group: "Steven",
+      Maths: "11",
+      English: "28",
+      Chemistry: "7",
+    },
+    {
+      group: "Lisa",
+      Maths: "14",
+      English: "6",
+      Chemistry: "23",
+    },
+  ];
+
+  const stackedSubGroups = [
+    { subgroup: "Maths", color: "#00b894", title: "Maths" },
+    { subgroup: "English", color: "#6c5ce7", title: "English" },
+    { subgroup: "Chemistry", color: "#fdcb6e", title: "Chemistry" },
+  ];
+  const stackedBarSvg = d3
+    .select("#chart4")
+    .append("svg")
+    .attr("id", "chart4-svg")
+    .attr("width", widthHeight[0])
+    .attr("height", widthHeight[1]);
+  const plot4 = stackedBarChart()
+    .data(stackedBarData)
+    .width(widthHeight[0])
+    .height(widthHeight[1])
+    .subGroups(stackedSubGroups)
+    .margin(margin)
+    .groups(stackedBarData.map((d) => d.group));
+
+  const stackedBarLegend = legend()
+    .ySeries(stackedSubGroups)
+    .x(400)
+    .y(40)
+    .width(100)
+    .height(80)
+    .pointType("rect").legendTitle("Subject");
+  stackedBarSvg.call(plot4);
+  stackedBarSvg.call(stackedBarLegend);
 }
 main();

@@ -37,7 +37,7 @@ export const lineChart = () => {
   const my = (selection) => {
     selection.attr("width", width).attr("height", height);
 
-    console.log(selection);
+   //console.log(selection);
     const backgroundRect = selection
       .selectAll(".backgroundRect")
       .data([null])
@@ -102,7 +102,7 @@ export const lineChart = () => {
       .range([height - margin.bottom, margin.top]);
 
     let xScale;
-    console.log(filteredData);
+    //console.log(filteredData);
     if (xType === "time") {
       xScale = d3
         .scaleTime()
@@ -121,7 +121,7 @@ export const lineChart = () => {
         x: xScale(xValue(d)),
         y: yScale(series.yValue(d)),
       }));
-      console.log(lineData);
+      //console.log(lineData);
       let lineGenerator;
       if (curveType) {
         lineGenerator = d3
@@ -139,9 +139,9 @@ export const lineChart = () => {
           (enter) => {
             const path = enter
               .append("path")
-              .attr("id", `path${i}`)
+              .attr("id", `#lineChartPath${i}`)
               .attr("d", null)
-              .attr("class", (d) => console.log(d))
+              .attr("id", `lineChartPath${i}`)
               .attr("fill", "none")
               .attr("stroke", colorList[i])
               .attr("stroke-width", "3px")
@@ -170,60 +170,6 @@ export const lineChart = () => {
         .attr("stroke-width", "0.25px");
     });
 
-    // const circles = selection
-    //   .selectAll(".pointCircles")
-    //   .data(marks)
-    //   .join(
-    //     (enter) =>
-    //       enter
-    //         .append("circle")
-    //         .attr("class", "pointCircles")
-    //         .attr("cx", (d) => d.x)
-    //         .attr("cy", (d) => d.y)
-    //         .attr("fill", (d) => d.color)
-    //         .attr("stroke", "black")
-    //         .attr("stroke-width", 0.5)
-    //         .attr("r", 0)
-    //         .on("mouseover", (event, d) => {
-    //           if (d.tooltip) {
-    //             tooltip = d3.select("#tooltip");
-    //             tooltip
-    //               .html(d.tooltip)
-    //               .style("left", `${event.pageX + 5}px`)
-    //               .style("top", `${event.pageY - 28}px`);
-    //             tooltip.transition().duration(200).style("opacity", 0.9);
-    //           }
-    //         })
-    //         .on("mouseout", (event, d) => {
-    //           if (d.tooltip) {
-    //             tooltip = d3.select("#tooltip");
-    //             tooltip.transition().duration(200).style("opacity", 0);
-    //           }
-    //         })
-    //         .on("click", (event, d) => {
-    //           additionalClickFunction(event, d);
-    //         })
-    //         .call((enter) => enter.transition(t).attr("r", (d) => d.r)),
-    //     (update) =>
-    //       update.call((update) =>
-    //         update
-    //           .transition(t)
-    //           .delay((d, i) => i * 8)
-    //           .attr("cx", (d) => d.x)
-    //           .attr("cy", (d) => d.y)
-    //           .attr("fill", (d) => d.color)
-    //       ),
-    //     (exit) => exit.remove()
-    //   );
-
-    //  .join("circle")
-    //  .attr("class", "pointCircles")
-    //  .attr("cx", (d) => d.x)
-    //  .attr("cy", (d) => d.y)
-    //  .attr("r", (d) => d.r)
-    //  .attr("fill", (d) => d.color)
-    //  .attr("stroke", "black")
-    //  .attr("stroke-width", 0.5);
 
     selection
       .selectAll("g.yAxis")
@@ -264,7 +210,7 @@ export const lineChart = () => {
       .text(yLabel);
 
     if (title) {
-      console.log(title);
+      //console.log(title);
       selection
         .selectAll(".titleLabel")
         .data([null])
