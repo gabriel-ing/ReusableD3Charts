@@ -14,51 +14,62 @@
       width:600px;
     }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-weight:200;
     }
     .axisLabel{
-        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .titleLabel.axisLabel{
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
-        font-size: 20px;
-        font-weight:500;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 15px;
+        font-weight:400;
         }
     .ticks{
         font-size: 12px;
         font-weight:100;
     }
-    #chart2-svg .ticks{
-        font-size: 10px;
+    .barLabels{
+      font-size: 12px;;
+      font-weight:100;
     }
+
     .legendText{
         font-size: 12px;
     }
     .tooltip{
         font-size: 50px;
     }
+    #header{
+        background-color: "mint";
+        width:100%;
+        height:"50px";
+    }
   </style>
 </head>
 <body>
+    <div id="header" >
+
+    </div>
+    <div class="chart-container">
+      <button onclick="saveChart('chart1-svg')">Download Chart</button>
+      <div class="chart" id="chart1"></div>
+    </div>
+    <div class="chart-container">
+      <button onclick="saveChart('chart2-svg')">Download Chart</button>
+      <div class="chart" id="chart2"></div>
+    </div>
+    <div class="chart-container">
+      <button onclick="saveChart('chart3-svg')">Download Chart</button>
+      <div class="chart" id="chart3"></div>
+    </div>
+    <div class="chart-container">
+      <button onclick="saveChart('chart4-svg')">Download Chart</button>
+      <div class="chart" id="chart4"></div>
+    </div>
     <div class="chart-container">
         <button onclick="saveChart('chart5-svg')">Download Chart</button>
         <div class="chart" id="chart5"></div>
       </div>
-    <div class="chart-container">
-    <button onclick="saveChart('chart1-svg')">Download Chart</button>
-    <div class="chart" id="chart1"></div>
-  </div>
-  <div class="chart-container">
-    <button onclick="saveChart('chart2-svg')">Download Chart</button>
-    <div class="chart" id="chart2"></div>
-  </div>
-  <div class="chart-container">
-    <button onclick="saveChart('chart3-svg')">Download Chart</button>
-    <div class="chart" id="chart3"></div>
-  </div>
-  <div class="chart-container">
-    <button onclick="saveChart('chart4-svg')">Download Chart</button>
-    <div class="chart" id="chart4"></div>
-  </div>
   <script src="bundle.js"></script>
 </body>
