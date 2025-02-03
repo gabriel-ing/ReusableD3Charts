@@ -61,6 +61,69 @@ export const lineChartData = [
     }
 ]
 
+export const lineChartData2020 = [
+    {
+        "Date": "2020-01-01T00:00:00.000Z",
+        "New York": 231,
+        "Los Angeles": 422,
+        "Miami": 23
+    },
+    {
+        "Date": "2020-01-02T00:00:00.000Z",
+        "New York": 111,
+        "Los Angeles": 235,
+        "Miami": 456
+    },
+    {
+        "Date": "2020-01-03T00:00:00.000Z",
+        "New York": 63,
+        "Los Angeles": 342,
+        "Miami": 533
+    },
+    {
+        "Date": "2020-01-04T00:00:00.000Z",
+        "New York": 122,
+        "Los Angeles": 342,
+        "Miami": 342
+    },
+    {
+        "Date": "2020-01-05T00:00:00.000Z",
+        "New York": 335,
+        "Los Angeles": 777,
+        "Miami": 234
+    },
+    {
+        "Date": "2020-01-06T00:00:00.000Z",
+        "New York": 567,
+        "Los Angeles": 865,
+        "Miami": 123
+    },
+    {
+        "Date": "2020-01-07T00:00:00.000Z",
+        "New York": 553,
+        "Los Angeles": 876,
+        "Miami": 435
+    },
+    {
+        "Date": "2020-01-08T00:00:00.000Z",
+        "New York": 233,
+        "Los Angeles": 865,
+        "Miami": 54
+    },
+    {
+        "Date": "2020-01-09T00:00:00.000Z",
+        "New York": 44,
+        "Los Angeles": 865,
+        "Miami": 456
+    },
+    {
+        "Date": "2020-01-10T00:00:00.000Z",
+        "New York": 444,
+        "Los Angeles": 88,
+        "Miami": 678
+    }
+]
+
 export const lineChartSeriesInfo = [
     {
       title: "New York",

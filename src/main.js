@@ -11,6 +11,7 @@ import { barChartData } from "./data/barChartData.js";
 import { lineChartData, lineChartSeriesInfo } from "./data/lineChartData.js";
 import { activityMonitorSquares } from "./charts/activityMonitorSquares.js";
 import moment from "moment";
+import { replotFunction } from "./utilities/replot.js";
 window.saveChart = saveChart;
 const getWidthHeight = (chartId) => {
   const container = document.getElementById(chartId);
@@ -35,8 +36,8 @@ function main() {
   Petal Length : ${d.petalLength} <br>
   Variety: ${d.species}</p>`;
 
-  const widthHeight = getWidthHeight("chart1");
-  const plot = scatterPlot()
+  const widthHeight = getWidthHeight("scatter");
+  const scatter = scatterPlot()
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(irisData)
@@ -50,8 +51,8 @@ function main() {
     .tooltipValue(tooltipValue)
     .title("Scatter Plot of Sepal Length vs Petal Length");
 
-  const chart1 = appendSvg("chart1");
-  chart1.call(plot);
+  const chart1 = appendSvg("scatter");
+  chart1.call(scatter);
 
   const chart1Legend = legend()
     .ySeries(irisColorLegend)
@@ -66,9 +67,7 @@ function main() {
   // ------------------  Section --------------------
   // Bar  chart data and calling
 
-  const chart2Id = "chart2";
-
-  const plot2 = barChart()
+  const bar = barChart()
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(barChartData)
@@ -77,15 +76,15 @@ function main() {
     .margin(margin)
     .xLabel("Fruit")
     .yLabel("Quantity")
-    .title("Bar chart the quantity of fruit in the Store inventory");
+    .title("Quantity of fruit in the Store inventory");
 
-  const chart2 = appendSvg("chart2");
-  chart2.call(plot2);
+  const chart2 = appendSvg("bar");
+  chart2.call(bar);
 
   // ------------------  Section --------------------
   // Line chart data and calling
 
-  const plot3 = lineChart()
+  const line = lineChart()
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(lineChartData)
@@ -96,8 +95,8 @@ function main() {
     .yLabel("Not really sure what the value is...? ")
     .title("Line chart showing example data about 3 different cities.");
 
-  const chart3 = appendSvg("chart3");
-  chart3.call(plot3);
+  const chart3 = appendSvg("line");
+  chart3.call(line);
 
   const lineLegend = legend()
     .width(80)
@@ -113,7 +112,7 @@ function main() {
   // ------------------  Section --------------------
   // Stacked Bar chart data and calling
 
-  const chart4 = appendSvg("chart4");
+  const chart4 = appendSvg("stacked-bar");
   const plot4 = stackedBarChart()
     .data(stackedBarData)
     .width(widthHeight[0])
@@ -133,23 +132,37 @@ function main() {
   chart4.call(plot4);
   chart4.call(stackedBarLegend);
 
-  const chart5 = appendSvg("chart5");
-  const weeklyData = [
-
-  ]
-  for (let i=0 ; i<52; i++){
+  const chart5 = appendSvg("activity");
+  const weeklyData = [];
+  for (let i = 0; i < 52; i++) {
     weeklyData.push({
       weekNumber: i,
-      activity: Math.floor(Math.random()*10),
+      activity: Math.floor(Math.random() * 10),
       year: 2024,
-    })
+    });
   }
   const plot5 = activityMonitorSquares()
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(weeklyData)
     .xValue((d) => d.weekNumber)
-    .tooltipValue((d)=> `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `);
+    .tooltipValue(
+      (d) => `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `
+    );
   chart5.call(plot5);
+
+  // const replot =
+  window.replot = (chartId) => {
+    switch (chartId) {
+      case "scatter-svg":
+        replotFunction(chartId, chart1, scatter);
+        break
+      case "bar-svg":
+        replotFunction(chartId, chart2, bar);
+        break
+      case "line-svg":
+        replotFunction(chartId, chart3 ,line)
+    }
+  };
 }
 main();

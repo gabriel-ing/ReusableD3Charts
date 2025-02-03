@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const lineChart = () => {
   let width;
@@ -37,7 +38,7 @@ export const lineChart = () => {
   const my = (selection) => {
     selection.attr("width", width).attr("height", height);
 
-   //console.log(selection);
+    //console.log(selection);
     const backgroundRect = selection
       .selectAll(".backgroundRect")
       .data([null])
@@ -48,7 +49,7 @@ export const lineChart = () => {
       .attr("fill", "white")
       .attr("opacity", 0)
       .on("click", backgroundOnClick);
-    console.log(backgroundRect);
+    
     //console.log(data);
     let filteredData = data;
 
@@ -59,20 +60,7 @@ export const lineChart = () => {
       filteredData = filteredData.filter(filterTwo);
     }
     if (tooltipValue(filteredData[0])) {
-      tooltip = d3.select("body").append("div").attr("id", "tooltip");
-      const tooltipStyles = {
-        position: "absolute",
-        opacity: "0",
-        background: "white",
-        border: "1px solid black",
-        padding: "2px",
-        "border-radius": "5px",
-        "font-size": "11px",
-        "line-height": "12px",
-      };
-      Object.entries(tooltipStyles).forEach(([prop, value]) =>
-        tooltip.style(prop, value)
-      );
+      tooltip = checkForTooltip();
     }
 
     if (xType === "category") {
@@ -133,7 +121,7 @@ export const lineChart = () => {
       }
       const t = d3.transition().duration(4000);
       const paths = selection
-        .selectAll(`#path${i}`)
+        .selectAll(`path`)
         .data([null])
         .join(
           (enter) => {
@@ -145,11 +133,12 @@ export const lineChart = () => {
               .attr("fill", "none")
               .attr("stroke", colorList[i])
               .attr("stroke-width", "3px")
-              .attr("stroke-linecap", "round")
+              .attr("stroke-linecap", "round");
 
-            path
-              .call((enter) => enter.transition(t).attr("d", lineGenerator(lineData)));
-            },
+            path.call((enter) =>
+              enter.transition(t).attr("d", lineGenerator(lineData))
+            );
+          },
           (update) => {
             update
               .transition(t)
@@ -169,7 +158,6 @@ export const lineChart = () => {
         .attr("stroke", "black")
         .attr("stroke-width", "0.25px");
     });
-
 
     selection
       .selectAll("g.yAxis")

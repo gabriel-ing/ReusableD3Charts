@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const scatterPlot = () => {
   let width;
@@ -58,29 +59,9 @@ export const scatterPlot = () => {
       filteredData = filteredData.filter(filterTwo);
     }
     if (tooltipValue(filteredData[0])) {
-      tooltip = d3.select("body").append("div").attr("id", "tooltip");
-      const tooltipStyles = {
-        position: "absolute",
-        opacity: "0",
-        background: "white",
-        border: "1px solid black",
-        padding: "2px",
-        "border-radius": "5px",
-        "font-size": "11px",
-        "line-height": "12px",
-      };
-      Object.entries(tooltipStyles).forEach(([prop, value]) =>
-        tooltip.style(prop, value)
-      );
+      tooltip = checkForTooltip();
     }
-    //console.log(filteredData);
-    //create x and y scales using the
-    // xValue and yValue functions defined above
-    // Top version is the axis defined by the data range, bottom starts from zero.
 
-    //create object with just the x and y values
-
-    //console.log(data.map(xValue));
     if (xType === "category") {
       x = d3
         .scalePoint()
@@ -161,7 +142,6 @@ export const scatterPlot = () => {
             .attr("stroke-width", 0.5)
             .attr("r", 0)
             .on("mouseover", (event, d) => {
-              
               if (d.tooltip) {
                 tooltip = d3.select("#tooltip");
                 tooltip
@@ -248,7 +228,7 @@ export const scatterPlot = () => {
         .join("text")
         .attr("class", "axisLabel titleLabel")
         .attr("x", width / 2)
-        .attr("y", margin.top/2)
+        .attr("y", margin.top / 2)
         .attr("text-anchor", "middle")
         .text(title);
     }

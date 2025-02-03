@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const stackedBarChart = () => {
   let width;
@@ -41,20 +42,7 @@ export const stackedBarChart = () => {
    
     
 
-    let tooltip = d3.select("#tooltip");
-    if (!tooltip) {
-      tooltip = d3.select("body").append("div").attr("id", "tooltip").attr("class", "tooltip");
-      const tooltipStyles = {
-        position: "absolute",
-        opacity: "0",
-        background: "white",
-        border: "1px solid black",
-        padding: "2px",
-        "border-radius": "5px",
-        "font-size": "11px",
-        "line-height": "12px",
-      };
-    }
+let  tooltip = checkForTooltip();
 
     const stackedData = d3.stack().keys(subs)(data);
 

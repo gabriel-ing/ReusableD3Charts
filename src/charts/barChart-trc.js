@@ -9,7 +9,7 @@ export const barChart = () => {
   let margin = { top: 50, right: 50, bottom: 50, left: 80 };
   let radius = 5;
   let xLabel;
-  let color =  "#F2B8D5";
+  let color =  "#e17055";
   let yLabel;
   let xType;
   let yType;
@@ -99,6 +99,7 @@ export const barChart = () => {
               .delay((d, i) => i * 8)
               .attr("height", (d) => d.height)
               .attr("y", (d) => height - d.height - margin.bottom)
+              .attr("fill", color)
           ),
         (exit) => exit.remove()
       );
@@ -201,5 +202,8 @@ export const barChart = () => {
   my.title = function (_) {
     return arguments.length ? ((title = _), my) : title;
   };
+  my.color = function (_){
+    return arguments.length? ((color = _), my): color;
+  }
   return my;
 };

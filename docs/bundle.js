@@ -5461,6 +5461,29 @@
 
   Transform.prototype;
 
+  function checkForTooltip() {
+      // const tooltip = d3.select("#tooltip");
+      let tooltip = document.getElementById("tooltip");
+
+      if (!tooltip) {
+      tooltip = select("body").append("div").attr("id", "tooltip");
+      const tooltipStyles = {
+        position: "absolute",
+        opacity: "0",
+        background: "white",
+        border: "1px solid black",
+        padding: "2px",
+        "border-radius": "5px",
+        "font-size": "11px",
+        "line-height": "12px",
+      };
+      Object.entries(tooltipStyles).forEach(([prop, value]) =>
+        tooltip.style(prop, value)
+      );
+    }
+    return tooltip;
+  }
+
   const scatterPlot = () => {
     let width;
     let height;
@@ -5519,29 +5542,9 @@
         filteredData = filteredData.filter(filterTwo);
       }
       if (tooltipValue(filteredData[0])) {
-        tooltip = select("body").append("div").attr("id", "tooltip");
-        const tooltipStyles = {
-          position: "absolute",
-          opacity: "0",
-          background: "white",
-          border: "1px solid black",
-          padding: "2px",
-          "border-radius": "5px",
-          "font-size": "11px",
-          "line-height": "12px",
-        };
-        Object.entries(tooltipStyles).forEach(([prop, value]) =>
-          tooltip.style(prop, value)
-        );
+        tooltip = checkForTooltip();
       }
-      //console.log(filteredData);
-      //create x and y scales using the
-      // xValue and yValue functions defined above
-      // Top version is the axis defined by the data range, bottom starts from zero.
 
-      //create object with just the x and y values
-
-      //console.log(data.map(xValue));
       if (xType === "category") {
         x = point()
           .domain(filteredData.map(xValue))
@@ -5616,7 +5619,6 @@
               .attr("stroke-width", 0.5)
               .attr("r", 0)
               .on("mouseover", (event, d) => {
-                
                 if (d.tooltip) {
                   tooltip = select("#tooltip");
                   tooltip
@@ -5703,7 +5705,7 @@
           .join("text")
           .attr("class", "axisLabel titleLabel")
           .attr("x", width / 2)
-          .attr("y", margin.top/2)
+          .attr("y", margin.top / 2)
           .attr("text-anchor", "middle")
           .text(title);
       }
@@ -5791,7 +5793,7 @@
     let margin = { top: 50, right: 50, bottom: 50, left: 80 };
     let radius = 5;
     let xLabel;
-    let color =  "#F2B8D5";
+    let color =  "#e17055";
     let yLabel;
     let xType;
     let yType;
@@ -5879,6 +5881,7 @@
                 .delay((d, i) => i * 8)
                 .attr("height", (d) => d.height)
                 .attr("y", (d) => height - d.height - margin.bottom)
+                .attr("fill", color)
             ),
           (exit) => exit.remove()
         );
@@ -5980,6 +5983,9 @@
     };
     my.title = function (_) {
       return arguments.length ? ((title = _), my) : title;
+    };
+    my.color = function (_){
+      return arguments.length? ((color = _), my): color;
     };
     return my;
   };
@@ -6109,7 +6115,6 @@
     let xLabel;
     let yLabel;
     let tooltipValue = (d) => null;
-    let tooltip;
     let xType;
     let yType;
     let filterOne = null;
@@ -6122,8 +6127,8 @@
     const my = (selection) => {
       selection.attr("width", width).attr("height", height);
 
-     //console.log(selection);
-      const backgroundRect = selection
+      //console.log(selection);
+      selection
         .selectAll(".backgroundRect")
         .data([null])
         .join("rect")
@@ -6133,7 +6138,7 @@
         .attr("fill", "white")
         .attr("opacity", 0)
         .on("click", backgroundOnClick);
-      console.log(backgroundRect);
+      
       //console.log(data);
       let filteredData = data;
 
@@ -6144,20 +6149,7 @@
         filteredData = filteredData.filter(filterTwo);
       }
       if (tooltipValue(filteredData[0])) {
-        tooltip = select("body").append("div").attr("id", "tooltip");
-        const tooltipStyles = {
-          position: "absolute",
-          opacity: "0",
-          background: "white",
-          border: "1px solid black",
-          padding: "2px",
-          "border-radius": "5px",
-          "font-size": "11px",
-          "line-height": "12px",
-        };
-        Object.entries(tooltipStyles).forEach(([prop, value]) =>
-          tooltip.style(prop, value)
-        );
+        checkForTooltip();
       }
 
       if (xType === "category") {
@@ -6211,7 +6203,7 @@
         }
         const t = transition().duration(4000);
         selection
-          .selectAll(`#path${i}`)
+          .selectAll(`path`)
           .data([null])
           .join(
             (enter) => {
@@ -6225,9 +6217,10 @@
                 .attr("stroke-width", "3px")
                 .attr("stroke-linecap", "round");
 
-              path
-                .call((enter) => enter.transition(t).attr("d", lineGenerator(lineData)));
-              },
+              path.call((enter) =>
+                enter.transition(t).attr("d", lineGenerator(lineData))
+              );
+            },
             (update) => {
               update
                 .transition(t)
@@ -6247,7 +6240,6 @@
           .attr("stroke", "black")
           .attr("stroke-width", "0.25px");
       });
-
 
       selection
         .selectAll("g.yAxis")
@@ -6538,10 +6530,7 @@
      
       
 
-      let tooltip = select("#tooltip");
-      if (!tooltip) {
-        tooltip = select("body").append("div").attr("id", "tooltip").attr("class", "tooltip");
-      }
+  let  tooltip = checkForTooltip();
 
       const stackedData = stack().keys(subs)(data);
 
@@ -7821,6 +7810,69 @@
           "New York": 54,
           "Los Angeles": 285,
           "Miami": 216
+      }
+  ];
+
+  const lineChartData2020 = [
+      {
+          "Date": "2020-01-01T00:00:00.000Z",
+          "New York": 231,
+          "Los Angeles": 422,
+          "Miami": 23
+      },
+      {
+          "Date": "2020-01-02T00:00:00.000Z",
+          "New York": 111,
+          "Los Angeles": 235,
+          "Miami": 456
+      },
+      {
+          "Date": "2020-01-03T00:00:00.000Z",
+          "New York": 63,
+          "Los Angeles": 342,
+          "Miami": 533
+      },
+      {
+          "Date": "2020-01-04T00:00:00.000Z",
+          "New York": 122,
+          "Los Angeles": 342,
+          "Miami": 342
+      },
+      {
+          "Date": "2020-01-05T00:00:00.000Z",
+          "New York": 335,
+          "Los Angeles": 777,
+          "Miami": 234
+      },
+      {
+          "Date": "2020-01-06T00:00:00.000Z",
+          "New York": 567,
+          "Los Angeles": 865,
+          "Miami": 123
+      },
+      {
+          "Date": "2020-01-07T00:00:00.000Z",
+          "New York": 553,
+          "Los Angeles": 876,
+          "Miami": 435
+      },
+      {
+          "Date": "2020-01-08T00:00:00.000Z",
+          "New York": 233,
+          "Los Angeles": 865,
+          "Miami": 54
+      },
+      {
+          "Date": "2020-01-09T00:00:00.000Z",
+          "New York": 44,
+          "Los Angeles": 865,
+          "Miami": 456
+      },
+      {
+          "Date": "2020-01-10T00:00:00.000Z",
+          "New York": 444,
+          "Los Angeles": 88,
+          "Miami": 678
       }
   ];
 
@@ -13719,6 +13771,69 @@
     return my;
   };
 
+  const replotFunction = (chartId, svg, plotObj) => {
+    
+    switch (chartId) {
+      case "scatter-svg":
+          console.log(chartId);
+        if (plotObj.xLabel() === "Petal Length") {
+          plotObj
+            .xValue((d) => d.petalWidth)
+            .xLabel("Petal Width")
+            .yValue((d) => d.petalLength)
+            .yLabel("Petal Length");
+
+          svg.call(plotObj);
+        } else {
+          plotObj
+            .xValue((d) => d.petalLength)
+            .xLabel("Petal Length")
+            .yValue((d) => d.sepalLength)
+            .yLabel("Sepal Length");
+
+          svg.call(plotObj);
+        }
+        break;
+      case "bar-svg":
+        
+        if (plotObj.yLabel() === "Quantity") {
+          plotObj
+            .yValue((d) => d.quality)
+            .yLabel("Quality")
+            .title("Quality of fruit in the Store inventory")
+            .color("#fdcb6e");
+          svg.call(plotObj);
+        } else {
+          plotObj
+            .yValue((d) => d.quantity)
+            .yLabel("Quantity")
+            .title("Quantity of fruit in the Store inventory")
+            .color("#e17055");
+          svg.call(plotObj);
+        }
+        break;
+      case "line-svg":
+        if (
+          plotObj.title() ===
+          "Line chart showing example data about 3 different cities in 2016"
+        ) {
+          plotObj
+            .title(
+              "Line chart showing example data about 3 different cities in 2020"
+            )
+            .data(lineChartData2020);
+            svg.call(plotObj);
+          } else {
+          plotObj
+            .title(
+              "Line chart showing example data about 3 different cities in 2016"
+            )
+            .data(lineChartData);
+            svg.call(plotObj);
+        }
+    }
+  };
+
   window.saveChart = saveChart;
   const getWidthHeight = (chartId) => {
     const container = document.getElementById(chartId);
@@ -13742,8 +13857,8 @@
   Petal Length : ${d.petalLength} <br>
   Variety: ${d.species}</p>`;
 
-    const widthHeight = getWidthHeight("chart1");
-    const plot = scatterPlot()
+    const widthHeight = getWidthHeight("scatter");
+    const scatter = scatterPlot()
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(irisData)
@@ -13757,8 +13872,8 @@
       .tooltipValue(tooltipValue)
       .title("Scatter Plot of Sepal Length vs Petal Length");
 
-    const chart1 = appendSvg("chart1");
-    chart1.call(plot);
+    const chart1 = appendSvg("scatter");
+    chart1.call(scatter);
 
     const chart1Legend = legend()
       .ySeries(irisColorLegend)
@@ -13770,7 +13885,10 @@
       .y(200);
     chart1.call(chart1Legend);
 
-    const plot2 = barChart()
+    // ------------------  Section --------------------
+    // Bar  chart data and calling
+
+    const bar = barChart()
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(barChartData)
@@ -13779,15 +13897,15 @@
       .margin(margin)
       .xLabel("Fruit")
       .yLabel("Quantity")
-      .title("Bar chart the quantity of fruit in the Store inventory");
+      .title("Quantity of fruit in the Store inventory");
 
-    const chart2 = appendSvg("chart2");
-    chart2.call(plot2);
+    const chart2 = appendSvg("bar");
+    chart2.call(bar);
 
     // ------------------  Section --------------------
     // Line chart data and calling
 
-    const plot3 = lineChart()
+    const line = lineChart()
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(lineChartData)
@@ -13798,8 +13916,8 @@
       .yLabel("Not really sure what the value is...? ")
       .title("Line chart showing example data about 3 different cities.");
 
-    const chart3 = appendSvg("chart3");
-    chart3.call(plot3);
+    const chart3 = appendSvg("line");
+    chart3.call(line);
 
     const lineLegend = legend()
       .width(80)
@@ -13815,7 +13933,7 @@
     // ------------------  Section --------------------
     // Stacked Bar chart data and calling
 
-    const chart4 = appendSvg("chart4");
+    const chart4 = appendSvg("stacked-bar");
     const plot4 = stackedBarChart()
       .data(stackedBarData)
       .width(widthHeight[0])
@@ -13835,14 +13953,12 @@
     chart4.call(plot4);
     chart4.call(stackedBarLegend);
 
-    const chart5 = appendSvg("chart5");
-    const weeklyData = [
-
-    ];
-    for (let i=0 ; i<52; i++){
+    const chart5 = appendSvg("activity");
+    const weeklyData = [];
+    for (let i = 0; i < 52; i++) {
       weeklyData.push({
         weekNumber: i,
-        activity: Math.floor(Math.random()*10),
+        activity: Math.floor(Math.random() * 10),
         year: 2024,
       });
     }
@@ -13851,8 +13967,24 @@
       .height(widthHeight[1])
       .data(weeklyData)
       .xValue((d) => d.weekNumber)
-      .tooltipValue((d)=> `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `);
+      .tooltipValue(
+        (d) => `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `
+      );
     chart5.call(plot5);
+
+    // const replot =
+    window.replot = (chartId) => {
+      switch (chartId) {
+        case "scatter-svg":
+          replotFunction(chartId, chart1, scatter);
+          break
+        case "bar-svg":
+          replotFunction(chartId, chart2, bar);
+          break
+        case "line-svg":
+          replotFunction(chartId, chart3 ,line);
+      }
+    };
   }
   main();
 
