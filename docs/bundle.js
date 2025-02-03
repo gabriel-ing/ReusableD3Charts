@@ -6114,7 +6114,8 @@
     ];
     let xLabel;
     let yLabel;
-    let tooltipValue = (d) => null;
+    let tooltipValue = (d) => `${d.title} <br>${d.xOriginal}: ${d.yOriginal}`;
+    let tooltip;
     let xType;
     let yType;
     let filterOne = null;
@@ -6138,7 +6139,7 @@
         .attr("fill", "white")
         .attr("opacity", 0)
         .on("click", backgroundOnClick);
-      
+
       //console.log(data);
       let filteredData = data;
 
@@ -6149,7 +6150,7 @@
         filteredData = filteredData.filter(filterTwo);
       }
       if (tooltipValue(filteredData[0])) {
-        checkForTooltip();
+        tooltip = checkForTooltip();
       }
 
       if (xType === "category") {
@@ -6187,59 +6188,125 @@
       }
       const t = transition().duration(1000);
 
-      ySeries.forEach((series, i) => {
-        const lineData = filteredData.map((d) => ({
-          x: xScale(xValue(d)),
-          y: yScale(series.yValue(d)),
-        }));
-        //console.log(lineData);
-        let lineGenerator;
-        if (curveType) {
-          lineGenerator = line((d) => d.x)
-            .y((d) => d.y)
-            .curve(curveType);
-        } else {
-          lineGenerator = line((d) => d.x).y((d) => d.y);
-        }
-        const t = transition().duration(4000);
-        selection
-          .selectAll(`path`)
-          .data([null])
-          .join(
-            (enter) => {
-              const path = enter
-                .append("path")
-                .attr("id", `#lineChartPath${i}`)
-                .attr("d", null)
-                .attr("id", `lineChartPath${i}`)
-                .attr("fill", "none")
-                .attr("stroke", colorList[i])
-                .attr("stroke-width", "3px")
-                .attr("stroke-linecap", "round");
-
-              path.call((enter) =>
-                enter.transition(t).attr("d", lineGenerator(lineData))
-              );
-            },
-            (update) => {
-              update
-                .transition(t)
-                .delay((d, i) => i * 8)
-                .attr("d", lineGenerator(lineData));
-            }
-          );
-        selection
-          .selectAll(`.circles${i}`)
-          .data(lineData)
-          .join("circle")
-          .attr("class", `circles${i}`)
-          .attr("cx", (d) => d.x)
-          .attr("cy", (d) => d.y)
-          .attr("r", radius)
-          .attr("fill", colorList[i])
-          .attr("stroke", "black")
-          .attr("stroke-width", "0.25px");
+      const seriesData = ySeries.map((d) => {
+        return {
+          title: d.title,
+          color: d.color,
+          values: data.map((datum) => ({
+            x: xScale(xValue(datum)),
+            y: yScale(d.yValue(datum)),
+            xOriginal: xValue(datum),
+            yOriginal: d.yValue(datum)
+          })),
+        };
       });
+
+
+      let lineGenerator;
+      if (curveType) {
+        lineGenerator = line()
+          .x((d) => d.x)
+          .y((d) => d.y)
+          .curve(curveType);
+      } else {
+        lineGenerator = line()
+          .x((d) => d.x)
+          .y((d) => d.y);
+      }
+      selection
+        .selectAll(".line-chart-line")
+        .data(seriesData)
+        .join("path")
+        .attr("fill", "none")
+        .attr("class", (d) => `line-chart-line series{${d.title}}`)
+        .attr("stroke", (d) => d.color)
+        .attr("stroke-width", 3)
+        .attr("d", (d) => lineGenerator(d.values));
+
+      const circlesData = seriesData.map((item) => {
+        return item.values.map((d) => ({
+          color: item.color,
+          title: item.title,
+          x: d.x,
+          y: d.y,
+          xOriginal: d.xOriginal,
+          yOriginal: d.yOriginal,
+          
+        }));
+      });
+
+
+      selection
+        .selectAll(".points")
+        .data(circlesData.flat())
+        .join("circle")
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y)
+        .attr("r", 3)
+        .attr("class", "points")
+        .attr("fill", (d) => d.color)
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+        .on("mouseover", function (event, d) {
+          select(this).attr("opacity", 0.5);
+          
+            tooltip = select("#tooltip");
+            tooltip
+              .style("left", `${event.pageX + 5}px`)
+              .style("top", `${event.pageY + 5}px`)
+              .style("opacity", 1)
+              .html(tooltipValue(d));
+          
+        }).on("mouseout", function (event, d){
+          select(this).attr("opacity", 1);
+          tooltip.transition().duration(500).style("opacity", 0);
+        });
+      // ySeries.forEach((series, i) => {
+      //   const lineData = filteredData.map((d) => ({
+      //     x: xScale(xValue(d)),
+      //     y: yScale(series.yValue(d)),
+      //   }));
+      //   //console.log(lineData);
+      //   }
+      //   const t = d3.transition().duration(4000);
+      //   const paths = selection
+      //     .selectAll(`path`)
+      //     .data([null])
+      //     .join(
+      //       (enter) => {
+      //         const path = enter
+      //           .append("path")
+      //           .attr("id", `#lineChartPath${i}`)
+      //           .attr("d", null)
+      //           .attr("id", `lineChartPath${i}`)
+      //           .attr("fill", "none")
+      //           .attr("stroke", colorList[i])
+      //           .attr("stroke-width", "3px")
+      //           .attr("stroke-linecap", "round");
+
+      //         path.call((enter) =>
+      //           enter.transition(t).attr("d", lineGenerator(lineData))
+      //         );
+      //       },
+      //       (update) => {
+      //         update
+      //           .transition(t)
+      //           .delay((d, i) => i * 8)
+      //           .attr("d", lineGenerator(lineData));
+      //       }
+      //     );
+
+      // const circles = selection
+      //   .selectAll(`.circles`)
+      //   .data(seriesData)
+      //   .join("circle")
+      //   .attr("class", `circles`)
+      //   .attr("cx", (d) => xScale(xValue(d)))
+      //   .attr("cy", (d) => yScale(yValue(d)))
+      //   .attr("r", radius)
+      //   .attr("fill", "yellow")
+      //   .attr("stroke", "black")
+      //   .attr("stroke-width", "0.25px");
 
       selection
         .selectAll("g.yAxis")
@@ -6378,9 +6445,26 @@
       const legend = selection
         .selectAll(".legend")
         .data([null])
-        .join("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${x}, ${y})`);
+        .join(
+          (enter) =>
+            enter
+              .append("g")
+              .attr("class", "legend")
+              .attr("transform", `translate(0, ${y})`)
+              .call((enter) =>
+                enter
+                  .transition()
+                  .duration(1000)
+                  .attr("transform", `translate(${x}, ${y})`)
+              ),
+          (update) =>
+            update.call((update) =>
+              update
+                .transition()
+                .duration(1000)
+                .attr("transform", `translate(${x}, ${y})`)
+            )
+        );
 
       legend
         .selectAll(".legendRect")
@@ -6501,6 +6585,8 @@
     let groups;
     let title;
     let margin = { top: 50, right: 50, bottom: 80, left: 80 };
+    let yLabel;
+    let xLabel;
 
     let tooltipValue = (d, key) => ` ${key} : ${d.data[key]}`;
 
@@ -6509,9 +6595,9 @@
       // selection.append("rect").attr("width", 100).attr("height", 100);
 
       const subs = subGroups.map((d) => d.subgroup);
-      const sums = data.map(d =>
-          subs.reduce((sum, key) => sum + Number(d[key]), 0)
-        );
+      const sums = data.map((d) =>
+        subs.reduce((sum, key) => sum + Number(d[key]), 0)
+      );
       const maxY = max(sums);
 
       const xScale = band()
@@ -6527,10 +6613,7 @@
         .domain([0, maxY])
         .range([height - margin.bottom, margin.bottom]);
 
-     
-      
-
-  let  tooltip = checkForTooltip();
+      let tooltip = checkForTooltip();
 
       const stackedData = stack().keys(subs)(data);
 
@@ -6545,29 +6628,47 @@
         })
         .selectAll("rect")
         .data((d) => d)
-        .join("rect")
-        .attr("x", (d) => xScale(d.data.group))
-        .attr("y", (d) => yScale(d[1]))
-        .attr("stroke", "black")
-        .attr("stroke-width", "0.5px")
-        .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
-        .attr("width", xScale.bandwidth())
-        .on("mouseover", function (event, d) {
-          
-          select(this).attr("opacity", 0.5);
-          const key = select(this.parentNode).attr("data-key");
-         
-          tooltip = select("#tooltip");
-          tooltip
-            .html(tooltipValue(d, key))
-            .style("left", `${event.pageX + 5}px`)
-            .style("top", `${event.pageY - 28}px`);
-          tooltip.transition().duration(200).style("opacity", 0.9);
-        })
-        .on("mouseout", function () {
-          select(this).attr("opacity", 1);
-          tooltip.style("opacity", 0).html("");
-        });
+        .join(
+          (enter) =>
+            enter
+              .append("rect")
+              .attr("x", (d) => xScale(d.data.group))
+              .attr("y", height - margin.bottom)
+              .attr("stroke", "black")
+              .attr("stroke-width", "0.5px")
+              .attr("height", 0)
+              .attr("width", xScale.bandwidth())
+              .on("mouseover", function (event, d) {
+                select(this).attr("opacity", 0.5);
+                const key = select(this.parentNode).attr("data-key");
+
+                tooltip = select("#tooltip");
+                tooltip
+                  .html(tooltipValue(d, key))
+                  .style("left", `${event.pageX + 5}px`)
+                  .style("top", `${event.pageY - 28}px`);
+                tooltip.transition().duration(200).style("opacity", 0.9);
+              })
+              .on("mouseout", function () {
+                select(this).attr("opacity", 1);
+                tooltip.style("opacity", 0).html("");
+              })
+              .call((enter) =>
+                enter
+                  .transition()
+                  .duration(1000)
+                  .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
+                  .attr("y", (d) => yScale(d[1]))
+              ),
+          (update) =>
+            update.call((update) =>
+              update
+                .transition()
+                .duration(1000)
+                .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
+                .attr("y", (d) => yScale(d[1]))
+            )
+        );
 
       selection
         .append("g")
@@ -6577,6 +6678,27 @@
         .append("g")
         .attr("transform", `translate(${margin.left},0)`)
         .call(axisLeft(yScale));
+
+      selection
+        .selectAll(".xAxisLabel")
+        .data([0])
+        .join("text")
+        .attr("class", "xAxisLabel axisLabel")
+        .attr("text-anchor", "middle")
+        .attr("x", margin.left + (width - margin.left - margin.right) / 2)
+        .attr("y", height - margin.bottom / 3)
+        .text(xLabel);
+
+      selection
+        .selectAll(".yAxisLabel")
+        .data([0])
+        .join("text")
+        .attr("class", "yAxisLabel axisLabel")
+        .attr("x", margin.left / 3)
+        .attr("y", height / 2)
+        .attr("text-anchor", "middle")
+        .attr("transform", `rotate(-90, ${margin.left / 3}, ${height / 2})`)
+        .text(yLabel);
 
       if (title) {
         // console.log(title);
@@ -6619,6 +6741,12 @@
     my.title = function (_) {
       return arguments?.length ? ((title = _), my) : title;
     };
+    my.xLabel = function (_) {
+      return arguments.length ? ((xLabel = _), my) : xLabel;
+    };
+    my.yLabel = function (_) {
+      return arguments.length ? ((yLabel = _), my) : yLabel;
+    };
     return my;
   };
 
@@ -6628,24 +6756,36 @@
         Maths: "42",
         English: "12",
         Chemistry: "3",
+        Physics: 10, 
+        Biology: 31,
+        History:21
       },
       {
         group: "Jessica",
         Maths: "6",
         English: "15",
         Chemistry: "33",
+        Physics: 10, 
+        Biology: 31,
+        History:21
       },
       {
         group: "Steven",
         Maths: "11",
         English: "28",
         Chemistry: "7",
+        Physics: 15, 
+        Biology: 23,
+        History:52
       },
       {
         group: "Lisa",
         Maths: "14",
         English: "6",
         Chemistry: "23",
+        Physics: 60, 
+        Biology: 22,
+        History:10
       },
     ];
 
@@ -6653,6 +6793,11 @@
       { subgroup: "Maths", color: "#00b894", title: "Maths" },
       { subgroup: "English", color: "#6c5ce7", title: "English" },
       { subgroup: "Chemistry", color: "#fdcb6e", title: "Chemistry" },
+    ];
+    const stackedSubGroupsAlt = [
+      { subgroup: "Physics", color: "#d63031", title: "Physics" },
+      { subgroup: "History", color: "#e84393", title: "History" },
+      { subgroup: "Biology", color: "#0984e3", title: "Biology" },
     ];
 
   const irisData = [
@@ -13771,11 +13916,10 @@
     return my;
   };
 
-  const replotFunction = (chartId, svg, plotObj) => {
-    
+  const replotFunction = (chartId, svg, plotObj, legend = null) => {
     switch (chartId) {
       case "scatter-svg":
-          console.log(chartId);
+        console.log(chartId);
         if (plotObj.xLabel() === "Petal Length") {
           plotObj
             .xValue((d) => d.petalWidth)
@@ -13795,7 +13939,6 @@
         }
         break;
       case "bar-svg":
-        
         if (plotObj.yLabel() === "Quantity") {
           plotObj
             .yValue((d) => d.quality)
@@ -13822,15 +13965,29 @@
               "Line chart showing example data about 3 different cities in 2020"
             )
             .data(lineChartData2020);
-            svg.call(plotObj);
-          } else {
+          svg.call(plotObj);
+        } else {
           plotObj
             .title(
               "Line chart showing example data about 3 different cities in 2016"
             )
             .data(lineChartData);
-            svg.call(plotObj);
+          svg.call(plotObj);
         }
+        break;
+      case "stacked-bar-svg":
+        if (plotObj.subGroups() == stackedSubGroups) {
+          plotObj.subGroups(stackedSubGroupsAlt);
+          legend.ySeries(stackedSubGroupsAlt).x(70);
+          svg.call(plotObj);
+          svg.call(legend);
+        } else {
+          plotObj.subGroups(stackedSubGroups);
+          legend.ySeries(stackedSubGroups).x(430);
+          svg.call(plotObj);
+          svg.call(legend);
+        }
+        break;
     }
   };
 
@@ -13914,7 +14071,7 @@
       .xLabel("ID")
       .xType("time")
       .yLabel("Not really sure what the value is...? ")
-      .title("Line chart showing example data about 3 different cities.");
+      .title("Line chart showing example data about 3 different cities in 2016");
 
     const chart3 = appendSvg("line");
     chart3.call(line);
@@ -13934,12 +14091,14 @@
     // Stacked Bar chart data and calling
 
     const chart4 = appendSvg("stacked-bar");
-    const plot4 = stackedBarChart()
+    const stacked = stackedBarChart()
       .data(stackedBarData)
       .width(widthHeight[0])
       .height(widthHeight[1])
       .subGroups(stackedSubGroups)
       .margin(margin)
+      .yLabel("Grades")
+      .xLabel("Student")
       .groups(stackedBarData.map((d) => d.group));
 
     const stackedBarLegend = legend()
@@ -13950,7 +14109,8 @@
       .height(80)
       .pointType("rect")
       .legendTitle("Subject");
-    chart4.call(plot4);
+
+    chart4.call(stacked);
     chart4.call(stackedBarLegend);
 
     const chart5 = appendSvg("activity");
@@ -13977,12 +14137,15 @@
       switch (chartId) {
         case "scatter-svg":
           replotFunction(chartId, chart1, scatter);
-          break
+          break;
         case "bar-svg":
           replotFunction(chartId, chart2, bar);
-          break
+          break;
         case "line-svg":
-          replotFunction(chartId, chart3 ,line);
+          replotFunction(chartId, chart3, line);
+          break;
+        case "stacked-bar-svg":
+          replotFunction(chartId, chart4, stacked, stackedBarLegend);
       }
     };
   }

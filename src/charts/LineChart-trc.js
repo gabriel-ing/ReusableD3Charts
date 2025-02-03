@@ -22,7 +22,7 @@ export const lineChart = () => {
   ];
   let xLabel;
   let yLabel;
-  let tooltipValue = (d) => null;
+  let tooltipValue = (d) => `${d.title} <br>${d.xOriginal}: ${d.yOriginal}`;
   let tooltip;
   let xType;
   let yType;
@@ -49,7 +49,7 @@ export const lineChart = () => {
       .attr("fill", "white")
       .attr("opacity", 0)
       .on("click", backgroundOnClick);
-    
+
     //console.log(data);
     let filteredData = data;
 
@@ -104,60 +104,127 @@ export const lineChart = () => {
     }
     const t = d3.transition().duration(1000);
 
-    ySeries.forEach((series, i) => {
-      const lineData = filteredData.map((d) => ({
-        x: xScale(xValue(d)),
-        y: yScale(series.yValue(d)),
-      }));
-      //console.log(lineData);
-      let lineGenerator;
-      if (curveType) {
-        lineGenerator = d3
-          .line((d) => d.x)
-          .y((d) => d.y)
-          .curve(curveType);
-      } else {
-        lineGenerator = d3.line((d) => d.x).y((d) => d.y);
-      }
-      const t = d3.transition().duration(4000);
-      const paths = selection
-        .selectAll(`path`)
-        .data([null])
-        .join(
-          (enter) => {
-            const path = enter
-              .append("path")
-              .attr("id", `#lineChartPath${i}`)
-              .attr("d", null)
-              .attr("id", `lineChartPath${i}`)
-              .attr("fill", "none")
-              .attr("stroke", colorList[i])
-              .attr("stroke-width", "3px")
-              .attr("stroke-linecap", "round");
-
-            path.call((enter) =>
-              enter.transition(t).attr("d", lineGenerator(lineData))
-            );
-          },
-          (update) => {
-            update
-              .transition(t)
-              .delay((d, i) => i * 8)
-              .attr("d", lineGenerator(lineData));
-          }
-        );
-      const circles = selection
-        .selectAll(`.circles${i}`)
-        .data(lineData)
-        .join("circle")
-        .attr("class", `circles${i}`)
-        .attr("cx", (d) => d.x)
-        .attr("cy", (d) => d.y)
-        .attr("r", radius)
-        .attr("fill", colorList[i])
-        .attr("stroke", "black")
-        .attr("stroke-width", "0.25px");
+    const seriesData = ySeries.map((d) => {
+      return {
+        title: d.title,
+        color: d.color,
+        values: data.map((datum) => ({
+          x: xScale(xValue(datum)),
+          y: yScale(d.yValue(datum)),
+          xOriginal: xValue(datum),
+          yOriginal: d.yValue(datum)
+        })),
+      };
     });
+
+
+    let lineGenerator;
+    if (curveType) {
+      lineGenerator = d3
+        .line()
+        .x((d) => d.x)
+        .y((d) => d.y)
+        .curve(curveType);
+    } else {
+      lineGenerator = d3
+        .line()
+        .x((d) => d.x)
+        .y((d) => d.y);
+    }
+    const paths = selection
+      .selectAll(".line-chart-line")
+      .data(seriesData)
+      .join("path")
+      .attr("fill", "none")
+      .attr("class", (d) => `line-chart-line series{${d.title}}`)
+      .attr("stroke", (d) => d.color)
+      .attr("stroke-width", 3)
+      .attr("d", (d) => lineGenerator(d.values));
+
+    const circlesData = seriesData.map((item) => {
+      return item.values.map((d) => ({
+        color: item.color,
+        title: item.title,
+        x: d.x,
+        y: d.y,
+        xOriginal: d.xOriginal,
+        yOriginal: d.yOriginal,
+        
+      }));
+    });
+
+
+    const circles = selection
+      .selectAll(".points")
+      .data(circlesData.flat())
+      .join("circle")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y)
+      .attr("r", 3)
+      .attr("class", "points")
+      .attr("fill", (d) => d.color)
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.5)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("opacity", 0.5);
+        
+          tooltip = d3.select("#tooltip");
+          tooltip
+            .style("left", `${event.pageX + 5}px`)
+            .style("top", `${event.pageY + 5}px`)
+            .style("opacity", 1)
+            .html(tooltipValue(d));
+        
+      }).on("mouseout", function (event, d){
+        d3.select(this).attr("opacity", 1)
+        tooltip.transition().duration(500).style("opacity", 0)
+      });
+    // ySeries.forEach((series, i) => {
+    //   const lineData = filteredData.map((d) => ({
+    //     x: xScale(xValue(d)),
+    //     y: yScale(series.yValue(d)),
+    //   }));
+    //   //console.log(lineData);
+    //   }
+    //   const t = d3.transition().duration(4000);
+    //   const paths = selection
+    //     .selectAll(`path`)
+    //     .data([null])
+    //     .join(
+    //       (enter) => {
+    //         const path = enter
+    //           .append("path")
+    //           .attr("id", `#lineChartPath${i}`)
+    //           .attr("d", null)
+    //           .attr("id", `lineChartPath${i}`)
+    //           .attr("fill", "none")
+    //           .attr("stroke", colorList[i])
+    //           .attr("stroke-width", "3px")
+    //           .attr("stroke-linecap", "round");
+
+    //         path.call((enter) =>
+    //           enter.transition(t).attr("d", lineGenerator(lineData))
+    //         );
+    //       },
+    //       (update) => {
+    //         update
+    //           .transition(t)
+    //           .delay((d, i) => i * 8)
+    //           .attr("d", lineGenerator(lineData));
+    //       }
+    //     );
+
+    // const circles = selection
+    //   .selectAll(`.circles`)
+    //   .data(seriesData)
+    //   .join("circle")
+    //   .attr("class", `circles`)
+    //   .attr("cx", (d) => xScale(xValue(d)))
+    //   .attr("cy", (d) => yScale(yValue(d)))
+    //   .attr("r", radius)
+    //   .attr("fill", "yellow")
+    //   .attr("stroke", "black")
+    //   .attr("stroke-width", "0.25px");
 
     selection
       .selectAll("g.yAxis")

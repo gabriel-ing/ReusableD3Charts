@@ -17,9 +17,26 @@ export const legend = () => {
     const legend = selection
       .selectAll(".legend")
       .data([null])
-      .join("g")
-      .attr("class", "legend")
-      .attr("transform", `translate(${x}, ${y})`);
+      .join(
+        (enter) =>
+          enter
+            .append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(0, ${y})`)
+            .call((enter) =>
+              enter
+                .transition()
+                .duration(1000)
+                .attr("transform", `translate(${x}, ${y})`)
+            ),
+        (update) =>
+          update.call((update) =>
+            update
+              .transition()
+              .duration(1000)
+              .attr("transform", `translate(${x}, ${y})`)
+          )
+      );
 
     legend
       .selectAll(".legendRect")

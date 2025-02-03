@@ -93,7 +93,7 @@ function main() {
     .xLabel("ID")
     .xType("time")
     .yLabel("Not really sure what the value is...? ")
-    .title("Line chart showing example data about 3 different cities.");
+    .title("Line chart showing example data about 3 different cities in 2016");
 
   const chart3 = appendSvg("line");
   chart3.call(line);
@@ -113,12 +113,14 @@ function main() {
   // Stacked Bar chart data and calling
 
   const chart4 = appendSvg("stacked-bar");
-  const plot4 = stackedBarChart()
+  const stacked = stackedBarChart()
     .data(stackedBarData)
     .width(widthHeight[0])
     .height(widthHeight[1])
     .subGroups(stackedSubGroups)
     .margin(margin)
+    .yLabel("Grades")
+    .xLabel("Student")
     .groups(stackedBarData.map((d) => d.group));
 
   const stackedBarLegend = legend()
@@ -129,7 +131,8 @@ function main() {
     .height(80)
     .pointType("rect")
     .legendTitle("Subject");
-  chart4.call(plot4);
+
+  chart4.call(stacked);
   chart4.call(stackedBarLegend);
 
   const chart5 = appendSvg("activity");
@@ -156,12 +159,15 @@ function main() {
     switch (chartId) {
       case "scatter-svg":
         replotFunction(chartId, chart1, scatter);
-        break
+        break;
       case "bar-svg":
         replotFunction(chartId, chart2, bar);
-        break
+        break;
       case "line-svg":
-        replotFunction(chartId, chart3 ,line)
+        replotFunction(chartId, chart3, line);
+        break;
+      case "stacked-bar-svg":
+        replotFunction(chartId, chart4, stacked, stackedBarLegend);
     }
   };
 }
