@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import moment from "moment";
+import { checkForTooltip } from "../utilities/checkForTooltip";
 // Returns path data for a rectangle with rounded right corners.
 // The top-left corner is ⟨x,y⟩.
 function rightRoundedRect(x, y, width, height, radius) {
@@ -92,53 +93,46 @@ export const activityMonitorSquares = () => {
   let data;
   let xValue;
   let radius = 8;
+  let gridX;
+  let gridY;
   const scale = 1.1;
   let margin = { top: 100, right: 50, bottom: 50, left: 50 };
   let tooltipValue = (d) => null;
   let timePeriod = "week";
+  let year;
   const my = (selection) => {
     selection.attr("width", width).attr("height", height);
-    console.log(selection);
 
-    // const paths = selection
-    //   .selectAll("path")
-    //   .data([null])
-    //   .join("path")
-    //   .attr("d", roundedRect(0, 0, 100, 100, 5, true))
-    //   .attr("fill", "red")
-    //   .attr("stroke", "grey")
-    //   .attr("stroke-width", 0.5);
+    let tooltip = checkForTooltip();
+    year = 2024;
 
-    let tooltip = d3.select("#tooltip");
-    if (!tooltip) {
-      tooltip = d3
-        .select("body")
-        .append("div")
-        .attr("id", "tooltip")
-        .attr("class", "tooltip");
-      const tooltipStyles = {
-        position: "absolute",
-        opacity: "0",
-        background: "white",
-        border: "1px solid black",
-        padding: "2px",
-        "border-radius": "5px",
-        "font-size": "11px",
-        "line-height": "12px",
-      };
-    }
+    // console.log(data);
+    if (!gridX & !gridY) {
+      switch (timePeriod) {
+        case "week":
+          if (year) {
+            console.log(
+              d3.range(53).map((d) => {
+                let date =
+                  d + 1 < 10
+                    ? moment(`${year}W0${d + 1}`).format("ll")
+                    : moment(`${year}W${d + 1}`).format("ll");
+                return date;
+              })
+            );
+          }
+          gridX = 13;
+          gridY = 4;
 
-    console.log(data);
-    let gridX;
-    let gridY;
-    switch (timePeriod) {
-      case "week":
-        gridX = 13;
-        gridY = 4;
-        break;
-      case "day":
-        gridX = 52;
-        gridY = 7;
+          break;
+        case "day":
+          gridX = 52;
+          gridY = 7;
+          break;
+        case "month":
+          gridX = 4;
+          gridY = 3;
+      }
     }
     const xScale = d3
       .scaleBand()
@@ -157,7 +151,7 @@ export const activityMonitorSquares = () => {
       .domain(d3.extent(data, colorValue))
       .range([d3.interpolateGreens(0), d3.interpolateGreens(1)]);
 
-    console.log(d3.extent(data, colorValue));
+    // console.log(d3.extent(data, colorValue));
     const minDimension = xScale.bandwidth();
 
     const marks = data.map((d) => ({
@@ -171,8 +165,9 @@ export const activityMonitorSquares = () => {
       tooltip: tooltipValue(d),
       data: d,
     }));
-    console.log(xScale(6));
-    console.log(marks);
+
+    // console.log(xScale(6));
+    // console.log(marks);
     selection
       .selectAll(".activitySquare")
       .data(marks)
@@ -187,12 +182,13 @@ export const activityMonitorSquares = () => {
         console.log(d);
       })
       .on("mouseover", function (event, d) {
+        tooltip = d3.select("#tooltip");
         tooltip
           .html(d.tooltip)
           .style("left", `${event.pageX + 5}px`)
           .style("top", `${event.pageY - 28}px`);
         tooltip.transition().duration(200).style("opacity", 0.9);
-        
+
         d3.select(this).attr(
           "transform",
           `scale(${scale}) translate(${d.x - d.x * scale}, ${

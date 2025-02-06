@@ -112,11 +112,10 @@ export const lineChart = () => {
           x: xScale(xValue(datum)),
           y: yScale(d.yValue(datum)),
           xOriginal: xValue(datum),
-          yOriginal: d.yValue(datum)
+          yOriginal: d.yValue(datum),
         })),
       };
     });
-
 
     let lineGenerator;
     if (curveType) {
@@ -134,12 +133,32 @@ export const lineChart = () => {
     const paths = selection
       .selectAll(".line-chart-line")
       .data(seriesData)
-      .join("path")
-      .attr("fill", "none")
-      .attr("class", (d) => `line-chart-line series{${d.title}}`)
-      .attr("stroke", (d) => d.color)
-      .attr("stroke-width", 3)
-      .attr("d", (d) => lineGenerator(d.values));
+      .join(
+        (enter) => {
+          enter
+            .append("path")
+            .attr("fill", "none")
+            .attr("class", (d) => `line-chart-line series{${d.title}}`)
+            .attr("stroke", (d) => d.color)
+            .attr("stroke-width", 3)
+            .attr("d", (d) => lineGenerator(d.values))
+            .call((enter) =>
+              enter
+                .transition()
+                .duration(1000)
+                .attr("d", (d) => lineGenerator(d.values))
+            );
+        },
+        (update) => {
+          update.call((update) =>
+            update
+              .transition()
+              .delay((d, i) => i * 200)
+              .duration(1000)
+              .attr("d", (d) => lineGenerator(d.values))
+          );
+        }
+      );
 
     const circlesData = seriesData.map((item) => {
       return item.values.map((d) => ({
@@ -149,36 +168,54 @@ export const lineChart = () => {
         y: d.y,
         xOriginal: d.xOriginal,
         yOriginal: d.yOriginal,
-        
       }));
     });
-
 
     const circles = selection
       .selectAll(".points")
       .data(circlesData.flat())
-      .join("circle")
-      .attr("cx", (d) => d.x)
-      .attr("cy", (d) => d.y)
-      .attr("r", 3)
-      .attr("class", "points")
-      .attr("fill", (d) => d.color)
-      .attr("stroke", "black")
-      .attr("stroke-width", 0.5)
-      .on("mouseover", function (event, d) {
-        d3.select(this).attr("opacity", 0.5);
-        
-          tooltip = d3.select("#tooltip");
-          tooltip
-            .style("left", `${event.pageX + 5}px`)
-            .style("top", `${event.pageY + 5}px`)
-            .style("opacity", 1)
-            .html(tooltipValue(d));
-        
-      }).on("mouseout", function (event, d){
-        d3.select(this).attr("opacity", 1)
-        tooltip.transition().duration(500).style("opacity", 0)
-      });
+      .join(
+        (enter) => {
+          enter
+            .append("circle")
+            .attr("cx", (d) => d.x)
+            .attr("cy", (d) => d.y)
+            .attr("r", 0)
+            .attr("class", "points")
+            .attr("fill", (d) => d.color)
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.5)
+            .on("mouseover", function (event, d) {
+              d3.select(this).attr("opacity", 0.5);
+
+              tooltip = d3.select("#tooltip");
+              tooltip
+                .style("left", `${event.pageX + 5}px`)
+                .style("top", `${event.pageY + 5}px`)
+                .style("opacity", 1)
+                .html(tooltipValue(d));
+            })
+            .on("mouseout", function (event, d) {
+              d3.select(this).attr("opacity", 1);
+              tooltip.transition().duration(500).style("opacity", 0);
+            })
+            .call((enter) =>
+              enter
+                .transition()
+                .delay(300)
+                .duration(1000)
+                .attr("r", (d) => 4)
+            );
+        },
+        (update) =>
+          update
+            .attr("r", 0)
+            .attr("cx", (d) => d.x)
+            .attr("cy", (d) => d.y)
+            .call((update) => {
+              update.transition().delay(1000).duration(1000).attr("r", 4);
+            })
+      );
     // ySeries.forEach((series, i) => {
     //   const lineData = filteredData.map((d) => ({
     //     x: xScale(xValue(d)),

@@ -9,9 +9,11 @@ import { stackedBarData, stackedSubGroups } from "./data/stackedBarData.js";
 import { irisData, irisColorLegend } from "./data/irisData.js";
 import { barChartData } from "./data/barChartData.js";
 import { lineChartData, lineChartSeriesInfo } from "./data/lineChartData.js";
+import { bubbleData, bubbleYSeries, bubbleColorPalette } from "./data/bubbleData.js";
 import { activityMonitorSquares } from "./charts/activityMonitorSquares.js";
 import moment from "moment";
 import { replotFunction } from "./utilities/replot.js";
+import { bubbleChart } from "./charts/bubbleChart-trc.js";
 window.saveChart = saveChart;
 const getWidthHeight = (chartId) => {
   const container = document.getElementById(chartId);
@@ -28,6 +30,13 @@ const appendSvg = (divID) => {
 const margin = { top: 50, right: 50, bottom: 80, left: 50 };
 
 function main() {
+  const arr = d3.range(1, 53);
+  const newArr = arr.map((d) =>
+    d < 10
+      ? moment(`2024W0${d}`).format("DD-MM-YYYY")
+      : moment(`2024W${d}`).format("DD-MM-YYYY")
+  );
+  console.log(newArr);
   // ------------------  Section --------------------
   // Scatter plot data,  calling and adding legend
 
@@ -41,8 +50,8 @@ function main() {
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(irisData)
-    .xValue((d) => d.petalLength)
-    .yValue((d) => d.sepalLength)
+    .xValue("petalLength")
+    .yValue("sepalLength")
     .colorValue((d) => d.species)
     .margin(margin)
     .radius(5)
@@ -71,8 +80,8 @@ function main() {
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(barChartData)
-    .xValue((d) => d.fruit)
-    .yValue((d) => d.quantity)
+    .xValue("fruit")
+    .yValue("quantity")
     .margin(margin)
     .xLabel("Fruit")
     .yLabel("Quantity")
@@ -99,9 +108,9 @@ function main() {
   chart3.call(line);
 
   const lineLegend = legend()
-    .width(80)
+    .width(90)
     .height(80)
-    .x(widthHeight[0] - 80)
+    .x(widthHeight[0] - 100)
     .y(50)
     .ySeries(lineChartSeriesInfo)
     .backgroundColor("#e3e3e3")
@@ -135,26 +144,64 @@ function main() {
   chart4.call(stacked);
   chart4.call(stackedBarLegend);
 
-  const chart5 = appendSvg("activity");
+  // ------------------  Section --------------------
+  // bubble plot data,  calling and adding legend
+
+  const chart5 = appendSvg("bubble");
+  const bubble = bubbleChart()
+    .width(widthHeight[0])
+    .height(widthHeight[1])
+    .data(bubbleData)
+    .bubbleValue("GDP")
+    .labelValue("Country")
+    .colorValue("Region")
+    // .colorPalette(bubbleYSeries)
+    .clustered(true)
+    .title("GDP of Countries");
+  // .margin();
+
+  const bubbleLegend = legend()
+    .x(10)
+    .y(widthHeight[1] - 100)
+    .width(100)
+    .height(100)
+    .ySeries(bubbleYSeries)
+    .legendTitle("Region");
+
+
+  chart5.call(bubble);
+  chart5.call(bubbleLegend);
+  // ------------------  Section --------------------
+  // Activity plot data,  calling and adding legend
+
+  const chart6 = appendSvg("activity");
   const weeklyData = [];
-  for (let i = 0; i < 52; i++) {
+  for (let i = 1; i < 53; i++) {
     weeklyData.push({
       weekNumber: i,
       activity: Math.floor(Math.random() * 10),
       year: 2024,
     });
   }
-  const plot5 = activityMonitorSquares()
+  const activity = activityMonitorSquares()
     .width(widthHeight[0])
     .height(widthHeight[1])
     .data(weeklyData)
     .xValue((d) => d.weekNumber)
-    .tooltipValue(
-      (d) => `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `
-    );
-  chart5.call(plot5);
+    .tooltipValue((d) => {
+      // console.log(d)
+      let date =
+        d.weekNumber < 10
+          ? moment(`2024W0${d.weekNumber}`).format("ll")
+          : moment(`2024W${d.weekNumber}`).format("ll");
 
-  // const replot =
+      return `Week Beginning: ${date}`;
+    });
+  chart6.call(activity);
+
+  // ------------------  Section --------------------
+  // replotting functions
+
   window.replot = (chartId) => {
     switch (chartId) {
       case "scatter-svg":
@@ -168,6 +215,9 @@ function main() {
         break;
       case "stacked-bar-svg":
         replotFunction(chartId, chart4, stacked, stackedBarLegend);
+        break;
+      case "bubble-svg":
+        replotFunction(chartId, chart5, bubble);
     }
   };
 }

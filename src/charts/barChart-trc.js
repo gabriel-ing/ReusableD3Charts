@@ -9,7 +9,7 @@ export const barChart = () => {
   let margin = { top: 50, right: 50, bottom: 50, left: 80 };
   let radius = 5;
   let xLabel;
-  let color =  "#e17055";
+  let color = "#e17055";
   let yLabel;
   let xType;
   let yType;
@@ -35,22 +35,20 @@ export const barChart = () => {
 
     x = d3
       .scaleBand()
-      .domain(filteredData.map(xValue))
-      .range([margin.left, width-margin.right])
+      .domain(filteredData.map( (d) => d[xValue]))
+      .range([margin.left, width - margin.right])
       .padding(0.2);
 
     heightScale = d3
       .scaleLinear()
-      .domain([0, d3.max(filteredData, yValue)])
+      .domain([0, d3.max(filteredData, (d) => d[yValue])])
       .range([axisHeight, 0]);
 
-
-
     const marks = filteredData.map((d) => ({
-      x: x(xValue(d)),
-      height: axisHeight - heightScale(yValue(d)),
-    
-      value: yValue(d).toFixed(1),
+      x: x(d[xValue]),
+      height: axisHeight - heightScale(d[yValue]),
+
+      value: d[yValue].toFixed(1),
     }));
 
     const t = d3.transition().duration(1000);
@@ -72,21 +70,22 @@ export const barChart = () => {
             .attr("stroke", "black")
             .attr("stroke-width", 0.5)
             .on("mouseover", function (event, d) {
-
               d3.select(this).style("opacity", "0.6");
               const barLabel = selection
                 .append("text")
                 .attr("class", "barLabels")
                 .attr("text-anchor", "middle")
-                .attr("x", d.x+(x.bandwidth()/2))
+                .attr("x", d.x + x.bandwidth() / 2)
                 .attr("y", height - margin.bottom - d.height - 10)
-                .transition().duration(100)
+                .transition()
+                .duration(100)
                 .text(d.value);
             })
             .on("mouseout", function (event, d) {
-              d3.select(this).style("opacity", 1)
-                d3.selectAll(".barLabels").transition().duration(100).remove();
-            }).call((enter) =>
+              d3.select(this).style("opacity", 1);
+              d3.selectAll(".barLabels").transition().duration(100).remove();
+            })
+            .call((enter) =>
               enter
                 .transition(t)
                 .attr("height", (d) => d.height)
@@ -103,7 +102,6 @@ export const barChart = () => {
           ),
         (exit) => exit.remove()
       );
-
 
     selection
       .selectAll("g.yAxis")
@@ -142,19 +140,19 @@ export const barChart = () => {
       .attr("text-anchor", "middle")
       .attr("transform", `rotate(-90, ${margin.left / 3}, ${height / 2})`)
       .text(yLabel);
-      
-      if (title) {
-        // console.log(title);
-        selection
-          .selectAll(".titleLabel")
-          .data([null])
-          .join("text")
-          .attr("class", "axisLabel titleLabel")
-          .attr("x", width / 2)
-          .attr("y", margin.top/2)
-          .attr("text-anchor", "middle")
-          .text(title);
-      }
+
+    if (title) {
+      // console.log(title);
+      selection
+        .selectAll(".titleLabel")
+        .data([null])
+        .join("text")
+        .attr("class", "axisLabel titleLabel")
+        .attr("x", width / 2)
+        .attr("y", margin.top / 2)
+        .attr("text-anchor", "middle")
+        .text(title);
+    }
   };
 
   my.width = function (_) {
@@ -202,8 +200,8 @@ export const barChart = () => {
   my.title = function (_) {
     return arguments.length ? ((title = _), my) : title;
   };
-  my.color = function (_){
-    return arguments.length? ((color = _), my): color;
-  }
+  my.color = function (_) {
+    return arguments.length ? ((color = _), my) : color;
+  };
   return my;
 };

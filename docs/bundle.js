@@ -583,7 +583,7 @@
   // selection; we don’t ever want to create a selection backed by a live
   // HTMLCollection or NodeList. However, note that selection.selectAll will use a
   // static NodeList as a group, since it safely derived from querySelectorAll.
-  function array$1(x) {
+  function array$2(x) {
     return x == null ? [] : Array.isArray(x) ? x : Array.from(x);
   }
 
@@ -599,7 +599,7 @@
 
   function arrayAll(select) {
     return function() {
-      return array$1(select.apply(this, arguments));
+      return array$2(select.apply(this, arguments));
     };
   }
 
@@ -703,7 +703,7 @@
     querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
   };
 
-  function constant$2(x) {
+  function constant$3(x) {
     return function() {
       return x;
     };
@@ -790,7 +790,7 @@
         parents = this._parents,
         groups = this._groups;
 
-    if (typeof value !== "function") value = constant$2(value);
+    if (typeof value !== "function") value = constant$3(value);
 
     for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
       var parent = parents[j],
@@ -1442,7 +1442,7 @@
   function selectAll(selector) {
     return typeof selector === "string"
         ? new Selection$1([document.querySelectorAll(selector)], [document.documentElement])
-        : new Selection$1([array$1(selector)], root);
+        : new Selection$1([array$2(selector)], root);
   }
 
   function define(constructor, factory, prototype) {
@@ -1871,7 +1871,7 @@
     };
   }
 
-  var constant$1 = x => () => x;
+  var constant$2 = x => () => x;
 
   function linear$1(a, d) {
     return function(t) {
@@ -1887,13 +1887,13 @@
 
   function gamma(y) {
     return (y = +y) === 1 ? nogamma : function(a, b) {
-      return b - a ? exponential(a, b, y) : constant$1(isNaN(a) ? b : a);
+      return b - a ? exponential(a, b, y) : constant$2(isNaN(a) ? b : a);
     };
   }
 
   function nogamma(a, b) {
     var d = b - a;
-    return d ? linear$1(a, d) : constant$1(isNaN(a) ? b : a);
+    return d ? linear$1(a, d) : constant$2(isNaN(a) ? b : a);
   }
 
   var interpolateRgb = (function rgbGamma(y) {
@@ -2077,7 +2077,7 @@
 
   function interpolate$1(a, b) {
     var t = typeof b, c;
-    return b == null || t === "boolean" ? constant$1(b)
+    return b == null || t === "boolean" ? constant$2(b)
         : (t === "number" ? interpolateNumber
         : t === "string" ? ((c = color(b)) ? (b = c, interpolateRgb) : interpolateString)
         : b instanceof color ? interpolateRgb
@@ -3664,6 +3664,595 @@
     return Math.max(0, exponent(max) - exponent(step)) + 1;
   }
 
+  function count(node) {
+    var sum = 0,
+        children = node.children,
+        i = children && children.length;
+    if (!i) sum = 1;
+    else while (--i >= 0) sum += children[i].value;
+    node.value = sum;
+  }
+
+  function node_count() {
+    return this.eachAfter(count);
+  }
+
+  function node_each(callback, that) {
+    let index = -1;
+    for (const node of this) {
+      callback.call(that, node, ++index, this);
+    }
+    return this;
+  }
+
+  function node_eachBefore(callback, that) {
+    var node = this, nodes = [node], children, i, index = -1;
+    while (node = nodes.pop()) {
+      callback.call(that, node, ++index, this);
+      if (children = node.children) {
+        for (i = children.length - 1; i >= 0; --i) {
+          nodes.push(children[i]);
+        }
+      }
+    }
+    return this;
+  }
+
+  function node_eachAfter(callback, that) {
+    var node = this, nodes = [node], next = [], children, i, n, index = -1;
+    while (node = nodes.pop()) {
+      next.push(node);
+      if (children = node.children) {
+        for (i = 0, n = children.length; i < n; ++i) {
+          nodes.push(children[i]);
+        }
+      }
+    }
+    while (node = next.pop()) {
+      callback.call(that, node, ++index, this);
+    }
+    return this;
+  }
+
+  function node_find(callback, that) {
+    let index = -1;
+    for (const node of this) {
+      if (callback.call(that, node, ++index, this)) {
+        return node;
+      }
+    }
+  }
+
+  function node_sum(value) {
+    return this.eachAfter(function(node) {
+      var sum = +value(node.data) || 0,
+          children = node.children,
+          i = children && children.length;
+      while (--i >= 0) sum += children[i].value;
+      node.value = sum;
+    });
+  }
+
+  function node_sort(compare) {
+    return this.eachBefore(function(node) {
+      if (node.children) {
+        node.children.sort(compare);
+      }
+    });
+  }
+
+  function node_path(end) {
+    var start = this,
+        ancestor = leastCommonAncestor(start, end),
+        nodes = [start];
+    while (start !== ancestor) {
+      start = start.parent;
+      nodes.push(start);
+    }
+    var k = nodes.length;
+    while (end !== ancestor) {
+      nodes.splice(k, 0, end);
+      end = end.parent;
+    }
+    return nodes;
+  }
+
+  function leastCommonAncestor(a, b) {
+    if (a === b) return a;
+    var aNodes = a.ancestors(),
+        bNodes = b.ancestors(),
+        c = null;
+    a = aNodes.pop();
+    b = bNodes.pop();
+    while (a === b) {
+      c = a;
+      a = aNodes.pop();
+      b = bNodes.pop();
+    }
+    return c;
+  }
+
+  function node_ancestors() {
+    var node = this, nodes = [node];
+    while (node = node.parent) {
+      nodes.push(node);
+    }
+    return nodes;
+  }
+
+  function node_descendants() {
+    return Array.from(this);
+  }
+
+  function node_leaves() {
+    var leaves = [];
+    this.eachBefore(function(node) {
+      if (!node.children) {
+        leaves.push(node);
+      }
+    });
+    return leaves;
+  }
+
+  function node_links() {
+    var root = this, links = [];
+    root.each(function(node) {
+      if (node !== root) { // Don’t include the root’s parent, if any.
+        links.push({source: node.parent, target: node});
+      }
+    });
+    return links;
+  }
+
+  function* node_iterator() {
+    var node = this, current, next = [node], children, i, n;
+    do {
+      current = next.reverse(), next = [];
+      while (node = current.pop()) {
+        yield node;
+        if (children = node.children) {
+          for (i = 0, n = children.length; i < n; ++i) {
+            next.push(children[i]);
+          }
+        }
+      }
+    } while (next.length);
+  }
+
+  function hierarchy(data, children) {
+    if (data instanceof Map) {
+      data = [undefined, data];
+      if (children === undefined) children = mapChildren;
+    } else if (children === undefined) {
+      children = objectChildren;
+    }
+
+    var root = new Node$1(data),
+        node,
+        nodes = [root],
+        child,
+        childs,
+        i,
+        n;
+
+    while (node = nodes.pop()) {
+      if ((childs = children(node.data)) && (n = (childs = Array.from(childs)).length)) {
+        node.children = childs;
+        for (i = n - 1; i >= 0; --i) {
+          nodes.push(child = childs[i] = new Node$1(childs[i]));
+          child.parent = node;
+          child.depth = node.depth + 1;
+        }
+      }
+    }
+
+    return root.eachBefore(computeHeight);
+  }
+
+  function node_copy() {
+    return hierarchy(this).eachBefore(copyData);
+  }
+
+  function objectChildren(d) {
+    return d.children;
+  }
+
+  function mapChildren(d) {
+    return Array.isArray(d) ? d[1] : null;
+  }
+
+  function copyData(node) {
+    if (node.data.value !== undefined) node.value = node.data.value;
+    node.data = node.data.data;
+  }
+
+  function computeHeight(node) {
+    var height = 0;
+    do node.height = height;
+    while ((node = node.parent) && (node.height < ++height));
+  }
+
+  function Node$1(data) {
+    this.data = data;
+    this.depth =
+    this.height = 0;
+    this.parent = null;
+  }
+
+  Node$1.prototype = hierarchy.prototype = {
+    constructor: Node$1,
+    count: node_count,
+    each: node_each,
+    eachAfter: node_eachAfter,
+    eachBefore: node_eachBefore,
+    find: node_find,
+    sum: node_sum,
+    sort: node_sort,
+    path: node_path,
+    ancestors: node_ancestors,
+    descendants: node_descendants,
+    leaves: node_leaves,
+    links: node_links,
+    copy: node_copy,
+    [Symbol.iterator]: node_iterator
+  };
+
+  function optional(f) {
+    return f == null ? null : required(f);
+  }
+
+  function required(f) {
+    if (typeof f !== "function") throw new Error;
+    return f;
+  }
+
+  function constantZero() {
+    return 0;
+  }
+
+  function constant$1(x) {
+    return function() {
+      return x;
+    };
+  }
+
+  // https://en.wikipedia.org/wiki/Linear_congruential_generator#Parameters_in_common_use
+  const a = 1664525;
+  const c = 1013904223;
+  const m = 4294967296; // 2^32
+
+  function lcg() {
+    let s = 1;
+    return () => (s = (a * s + c) % m) / m;
+  }
+
+  function array$1(x) {
+    return typeof x === "object" && "length" in x
+      ? x // Array, TypedArray, NodeList, array-like
+      : Array.from(x); // Map, Set, iterable, string, or anything else
+  }
+
+  function shuffle(array, random) {
+    let m = array.length,
+        t,
+        i;
+
+    while (m) {
+      i = random() * m-- | 0;
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+
+    return array;
+  }
+
+  function packEncloseRandom(circles, random) {
+    var i = 0, n = (circles = shuffle(Array.from(circles), random)).length, B = [], p, e;
+
+    while (i < n) {
+      p = circles[i];
+      if (e && enclosesWeak(e, p)) ++i;
+      else e = encloseBasis(B = extendBasis(B, p)), i = 0;
+    }
+
+    return e;
+  }
+
+  function extendBasis(B, p) {
+    var i, j;
+
+    if (enclosesWeakAll(p, B)) return [p];
+
+    // If we get here then B must have at least one element.
+    for (i = 0; i < B.length; ++i) {
+      if (enclosesNot(p, B[i])
+          && enclosesWeakAll(encloseBasis2(B[i], p), B)) {
+        return [B[i], p];
+      }
+    }
+
+    // If we get here then B must have at least two elements.
+    for (i = 0; i < B.length - 1; ++i) {
+      for (j = i + 1; j < B.length; ++j) {
+        if (enclosesNot(encloseBasis2(B[i], B[j]), p)
+            && enclosesNot(encloseBasis2(B[i], p), B[j])
+            && enclosesNot(encloseBasis2(B[j], p), B[i])
+            && enclosesWeakAll(encloseBasis3(B[i], B[j], p), B)) {
+          return [B[i], B[j], p];
+        }
+      }
+    }
+
+    // If we get here then something is very wrong.
+    throw new Error;
+  }
+
+  function enclosesNot(a, b) {
+    var dr = a.r - b.r, dx = b.x - a.x, dy = b.y - a.y;
+    return dr < 0 || dr * dr < dx * dx + dy * dy;
+  }
+
+  function enclosesWeak(a, b) {
+    var dr = a.r - b.r + Math.max(a.r, b.r, 1) * 1e-9, dx = b.x - a.x, dy = b.y - a.y;
+    return dr > 0 && dr * dr > dx * dx + dy * dy;
+  }
+
+  function enclosesWeakAll(a, B) {
+    for (var i = 0; i < B.length; ++i) {
+      if (!enclosesWeak(a, B[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function encloseBasis(B) {
+    switch (B.length) {
+      case 1: return encloseBasis1(B[0]);
+      case 2: return encloseBasis2(B[0], B[1]);
+      case 3: return encloseBasis3(B[0], B[1], B[2]);
+    }
+  }
+
+  function encloseBasis1(a) {
+    return {
+      x: a.x,
+      y: a.y,
+      r: a.r
+    };
+  }
+
+  function encloseBasis2(a, b) {
+    var x1 = a.x, y1 = a.y, r1 = a.r,
+        x2 = b.x, y2 = b.y, r2 = b.r,
+        x21 = x2 - x1, y21 = y2 - y1, r21 = r2 - r1,
+        l = Math.sqrt(x21 * x21 + y21 * y21);
+    return {
+      x: (x1 + x2 + x21 / l * r21) / 2,
+      y: (y1 + y2 + y21 / l * r21) / 2,
+      r: (l + r1 + r2) / 2
+    };
+  }
+
+  function encloseBasis3(a, b, c) {
+    var x1 = a.x, y1 = a.y, r1 = a.r,
+        x2 = b.x, y2 = b.y, r2 = b.r,
+        x3 = c.x, y3 = c.y, r3 = c.r,
+        a2 = x1 - x2,
+        a3 = x1 - x3,
+        b2 = y1 - y2,
+        b3 = y1 - y3,
+        c2 = r2 - r1,
+        c3 = r3 - r1,
+        d1 = x1 * x1 + y1 * y1 - r1 * r1,
+        d2 = d1 - x2 * x2 - y2 * y2 + r2 * r2,
+        d3 = d1 - x3 * x3 - y3 * y3 + r3 * r3,
+        ab = a3 * b2 - a2 * b3,
+        xa = (b2 * d3 - b3 * d2) / (ab * 2) - x1,
+        xb = (b3 * c2 - b2 * c3) / ab,
+        ya = (a3 * d2 - a2 * d3) / (ab * 2) - y1,
+        yb = (a2 * c3 - a3 * c2) / ab,
+        A = xb * xb + yb * yb - 1,
+        B = 2 * (r1 + xa * xb + ya * yb),
+        C = xa * xa + ya * ya - r1 * r1,
+        r = -(Math.abs(A) > 1e-6 ? (B + Math.sqrt(B * B - 4 * A * C)) / (2 * A) : C / B);
+    return {
+      x: x1 + xa + xb * r,
+      y: y1 + ya + yb * r,
+      r: r
+    };
+  }
+
+  function place(b, a, c) {
+    var dx = b.x - a.x, x, a2,
+        dy = b.y - a.y, y, b2,
+        d2 = dx * dx + dy * dy;
+    if (d2) {
+      a2 = a.r + c.r, a2 *= a2;
+      b2 = b.r + c.r, b2 *= b2;
+      if (a2 > b2) {
+        x = (d2 + b2 - a2) / (2 * d2);
+        y = Math.sqrt(Math.max(0, b2 / d2 - x * x));
+        c.x = b.x - x * dx - y * dy;
+        c.y = b.y - x * dy + y * dx;
+      } else {
+        x = (d2 + a2 - b2) / (2 * d2);
+        y = Math.sqrt(Math.max(0, a2 / d2 - x * x));
+        c.x = a.x + x * dx - y * dy;
+        c.y = a.y + x * dy + y * dx;
+      }
+    } else {
+      c.x = a.x + c.r;
+      c.y = a.y;
+    }
+  }
+
+  function intersects(a, b) {
+    var dr = a.r + b.r - 1e-6, dx = b.x - a.x, dy = b.y - a.y;
+    return dr > 0 && dr * dr > dx * dx + dy * dy;
+  }
+
+  function score(node) {
+    var a = node._,
+        b = node.next._,
+        ab = a.r + b.r,
+        dx = (a.x * b.r + b.x * a.r) / ab,
+        dy = (a.y * b.r + b.y * a.r) / ab;
+    return dx * dx + dy * dy;
+  }
+
+  function Node(circle) {
+    this._ = circle;
+    this.next = null;
+    this.previous = null;
+  }
+
+  function packSiblingsRandom(circles, random) {
+    if (!(n = (circles = array$1(circles)).length)) return 0;
+
+    var a, b, c, n, aa, ca, i, j, k, sj, sk;
+
+    // Place the first circle.
+    a = circles[0], a.x = 0, a.y = 0;
+    if (!(n > 1)) return a.r;
+
+    // Place the second circle.
+    b = circles[1], a.x = -b.r, b.x = a.r, b.y = 0;
+    if (!(n > 2)) return a.r + b.r;
+
+    // Place the third circle.
+    place(b, a, c = circles[2]);
+
+    // Initialize the front-chain using the first three circles a, b and c.
+    a = new Node(a), b = new Node(b), c = new Node(c);
+    a.next = c.previous = b;
+    b.next = a.previous = c;
+    c.next = b.previous = a;
+
+    // Attempt to place each remaining circle…
+    pack: for (i = 3; i < n; ++i) {
+      place(a._, b._, c = circles[i]), c = new Node(c);
+
+      // Find the closest intersecting circle on the front-chain, if any.
+      // “Closeness” is determined by linear distance along the front-chain.
+      // “Ahead” or “behind” is likewise determined by linear distance.
+      j = b.next, k = a.previous, sj = b._.r, sk = a._.r;
+      do {
+        if (sj <= sk) {
+          if (intersects(j._, c._)) {
+            b = j, a.next = b, b.previous = a, --i;
+            continue pack;
+          }
+          sj += j._.r, j = j.next;
+        } else {
+          if (intersects(k._, c._)) {
+            a = k, a.next = b, b.previous = a, --i;
+            continue pack;
+          }
+          sk += k._.r, k = k.previous;
+        }
+      } while (j !== k.next);
+
+      // Success! Insert the new circle c between a and b.
+      c.previous = a, c.next = b, a.next = b.previous = b = c;
+
+      // Compute the new closest circle pair to the centroid.
+      aa = score(a);
+      while ((c = c.next) !== b) {
+        if ((ca = score(c)) < aa) {
+          a = c, aa = ca;
+        }
+      }
+      b = a.next;
+    }
+
+    // Compute the enclosing circle of the front chain.
+    a = [b._], c = b; while ((c = c.next) !== b) a.push(c._); c = packEncloseRandom(a, random);
+
+    // Translate the circles to put the enclosing circle around the origin.
+    for (i = 0; i < n; ++i) a = circles[i], a.x -= c.x, a.y -= c.y;
+
+    return c.r;
+  }
+
+  function defaultRadius(d) {
+    return Math.sqrt(d.value);
+  }
+
+  function index() {
+    var radius = null,
+        dx = 1,
+        dy = 1,
+        padding = constantZero;
+
+    function pack(root) {
+      const random = lcg();
+      root.x = dx / 2, root.y = dy / 2;
+      if (radius) {
+        root.eachBefore(radiusLeaf(radius))
+            .eachAfter(packChildrenRandom(padding, 0.5, random))
+            .eachBefore(translateChild(1));
+      } else {
+        root.eachBefore(radiusLeaf(defaultRadius))
+            .eachAfter(packChildrenRandom(constantZero, 1, random))
+            .eachAfter(packChildrenRandom(padding, root.r / Math.min(dx, dy), random))
+            .eachBefore(translateChild(Math.min(dx, dy) / (2 * root.r)));
+      }
+      return root;
+    }
+
+    pack.radius = function(x) {
+      return arguments.length ? (radius = optional(x), pack) : radius;
+    };
+
+    pack.size = function(x) {
+      return arguments.length ? (dx = +x[0], dy = +x[1], pack) : [dx, dy];
+    };
+
+    pack.padding = function(x) {
+      return arguments.length ? (padding = typeof x === "function" ? x : constant$1(+x), pack) : padding;
+    };
+
+    return pack;
+  }
+
+  function radiusLeaf(radius) {
+    return function(node) {
+      if (!node.children) {
+        node.r = Math.max(0, +radius(node) || 0);
+      }
+    };
+  }
+
+  function packChildrenRandom(padding, k, random) {
+    return function(node) {
+      if (children = node.children) {
+        var children,
+            i,
+            n = children.length,
+            r = padding(node) * k || 0,
+            e;
+
+        if (r) for (i = 0; i < n; ++i) children[i].r += r;
+        e = packSiblingsRandom(children, random);
+        if (r) for (i = 0; i < n; ++i) children[i].r -= r;
+        node.r = e + r;
+      }
+    };
+  }
+
+  function translateChild(k) {
+    return function(node) {
+      var parent = node.parent;
+      node.r *= k;
+      if (parent) {
+        node.x = parent.x + k * node.x;
+        node.y = parent.y + k * node.y;
+      }
+    };
+  }
+
   function initRange(domain, range) {
     switch (arguments.length) {
       case 0: break;
@@ -4056,6 +4645,53 @@
     domain[i0] = interval.floor(x0);
     domain[i1] = interval.ceil(x1);
     return domain;
+  }
+
+  function transformPow(exponent) {
+    return function(x) {
+      return x < 0 ? -Math.pow(-x, exponent) : Math.pow(x, exponent);
+    };
+  }
+
+  function transformSqrt(x) {
+    return x < 0 ? -Math.sqrt(-x) : Math.sqrt(x);
+  }
+
+  function transformSquare(x) {
+    return x < 0 ? -x * x : x * x;
+  }
+
+  function powish(transform) {
+    var scale = transform(identity, identity),
+        exponent = 1;
+
+    function rescale() {
+      return exponent === 1 ? transform(identity, identity)
+          : exponent === 0.5 ? transform(transformSqrt, transformSquare)
+          : transform(transformPow(exponent), transformPow(1 / exponent));
+    }
+
+    scale.exponent = function(_) {
+      return arguments.length ? (exponent = +_, rescale()) : exponent;
+    };
+
+    return linearish(scale);
+  }
+
+  function pow() {
+    var scale = powish(transformer());
+
+    scale.copy = function() {
+      return copy(scale, pow()).exponent(scale.exponent());
+    };
+
+    initRange.apply(scale, arguments);
+
+    return scale;
+  }
+
+  function sqrt() {
+    return pow.apply(null, arguments).exponent(0.5);
   }
 
   const t0 = new Date, t1 = new Date;
@@ -5547,39 +6183,42 @@
 
       if (xType === "category") {
         x = point()
-          .domain(filteredData.map(xValue))
+          .domain(filteredData.map((d) => d[xValue]))
           .range([margin.left, width - margin.right])
           .padding(0.2);
       }
       if (xType === "time") {
         x = time()
-          .domain(extent(filteredData, xValue))
+          .domain(extent(filteredData, (d) => d[xValue]))
           .range([margin.left, width - margin.right]);
       } else {
         x = linear()
-          .domain([min(filteredData, xValue), max(filteredData, xValue)])
+          .domain([
+            min(filteredData, (d) => d[xValue]),
+            max(filteredData, (d) => d[xValue]),
+          ])
           .range([margin.left, width - margin.right]);
       }
 
       if (yType === "category") {
         y = point()
-          .domain(filteredData.map(yValue))
+          .domain(filteredData.map((d) => d[yValue]))
           .range([height - margin.bottom, margin.top])
           .padding(0.2);
       } else {
         y = linear()
-          .domain([0, max(filteredData, yValue)])
+          .domain([0, max(filteredData, (d) => d[yValue])])
           .range([height - margin.bottom, margin.top]);
       }
       /* 
           const x = d3
           .scaleLinear()
-          .domain(d3.extent(data, xValue))
+          .domain(d3.extent(data, (d)=>d[xValue]))
           .range([margin.left, width - margin.right]);
 
           const y = d3
           .scaleLinear()
-          .domain(d3.extent(data, yValue))
+          .domain(d3.extent(data, (d) => d[yValue]))
           .range([height - margin.bottom, margin.top]);
           
           
@@ -5594,8 +6233,8 @@
       // marks.color = colorScale(marks.color);
 
       const marks = filteredData.map((d) => ({
-        x: x(xValue(d)),
-        y: y(yValue(d)),
+        x: x(d[xValue]),
+        y: y(d[yValue]),
         r: radius,
         color: colorScale(colorValue(d)),
         tooltip: tooltipValue(d),
@@ -5793,7 +6432,7 @@
     let margin = { top: 50, right: 50, bottom: 50, left: 80 };
     let radius = 5;
     let xLabel;
-    let color =  "#e17055";
+    let color = "#e17055";
     let yLabel;
     let xType;
     let yType;
@@ -5818,21 +6457,19 @@
       //console.log(filteredData);
 
       x = band()
-        .domain(filteredData.map(xValue))
-        .range([margin.left, width-margin.right])
+        .domain(filteredData.map( (d) => d[xValue]))
+        .range([margin.left, width - margin.right])
         .padding(0.2);
 
       heightScale = linear()
-        .domain([0, max(filteredData, yValue)])
+        .domain([0, max(filteredData, (d) => d[yValue])])
         .range([axisHeight, 0]);
 
-
-
       const marks = filteredData.map((d) => ({
-        x: x(xValue(d)),
-        height: axisHeight - heightScale(yValue(d)),
-      
-        value: yValue(d).toFixed(1),
+        x: x(d[xValue]),
+        height: axisHeight - heightScale(d[yValue]),
+
+        value: d[yValue].toFixed(1),
       }));
 
       const t = transition().duration(1000);
@@ -5854,21 +6491,22 @@
               .attr("stroke", "black")
               .attr("stroke-width", 0.5)
               .on("mouseover", function (event, d) {
-
                 select(this).style("opacity", "0.6");
                 selection
                   .append("text")
                   .attr("class", "barLabels")
                   .attr("text-anchor", "middle")
-                  .attr("x", d.x+(x.bandwidth()/2))
+                  .attr("x", d.x + x.bandwidth() / 2)
                   .attr("y", height - margin.bottom - d.height - 10)
-                  .transition().duration(100)
+                  .transition()
+                  .duration(100)
                   .text(d.value);
               })
               .on("mouseout", function (event, d) {
                 select(this).style("opacity", 1);
-                  selectAll(".barLabels").transition().duration(100).remove();
-              }).call((enter) =>
+                selectAll(".barLabels").transition().duration(100).remove();
+              })
+              .call((enter) =>
                 enter
                   .transition(t)
                   .attr("height", (d) => d.height)
@@ -5885,7 +6523,6 @@
             ),
           (exit) => exit.remove()
         );
-
 
       selection
         .selectAll("g.yAxis")
@@ -5924,19 +6561,19 @@
         .attr("text-anchor", "middle")
         .attr("transform", `rotate(-90, ${margin.left / 3}, ${height / 2})`)
         .text(yLabel);
-        
-        if (title) {
-          // console.log(title);
-          selection
-            .selectAll(".titleLabel")
-            .data([null])
-            .join("text")
-            .attr("class", "axisLabel titleLabel")
-            .attr("x", width / 2)
-            .attr("y", margin.top/2)
-            .attr("text-anchor", "middle")
-            .text(title);
-        }
+
+      if (title) {
+        // console.log(title);
+        selection
+          .selectAll(".titleLabel")
+          .data([null])
+          .join("text")
+          .attr("class", "axisLabel titleLabel")
+          .attr("x", width / 2)
+          .attr("y", margin.top / 2)
+          .attr("text-anchor", "middle")
+          .text(title);
+      }
     };
 
     my.width = function (_) {
@@ -5984,8 +6621,8 @@
     my.title = function (_) {
       return arguments.length ? ((title = _), my) : title;
     };
-    my.color = function (_){
-      return arguments.length? ((color = _), my): color;
+    my.color = function (_) {
+      return arguments.length ? ((color = _), my) : color;
     };
     return my;
   };
@@ -6196,11 +6833,10 @@
             x: xScale(xValue(datum)),
             y: yScale(d.yValue(datum)),
             xOriginal: xValue(datum),
-            yOriginal: d.yValue(datum)
+            yOriginal: d.yValue(datum),
           })),
         };
       });
-
 
       let lineGenerator;
       if (curveType) {
@@ -6216,12 +6852,32 @@
       selection
         .selectAll(".line-chart-line")
         .data(seriesData)
-        .join("path")
-        .attr("fill", "none")
-        .attr("class", (d) => `line-chart-line series{${d.title}}`)
-        .attr("stroke", (d) => d.color)
-        .attr("stroke-width", 3)
-        .attr("d", (d) => lineGenerator(d.values));
+        .join(
+          (enter) => {
+            enter
+              .append("path")
+              .attr("fill", "none")
+              .attr("class", (d) => `line-chart-line series{${d.title}}`)
+              .attr("stroke", (d) => d.color)
+              .attr("stroke-width", 3)
+              .attr("d", (d) => lineGenerator(d.values))
+              .call((enter) =>
+                enter
+                  .transition()
+                  .duration(1000)
+                  .attr("d", (d) => lineGenerator(d.values))
+              );
+          },
+          (update) => {
+            update.call((update) =>
+              update
+                .transition()
+                .delay((d, i) => i * 200)
+                .duration(1000)
+                .attr("d", (d) => lineGenerator(d.values))
+            );
+          }
+        );
 
       const circlesData = seriesData.map((item) => {
         return item.values.map((d) => ({
@@ -6231,36 +6887,54 @@
           y: d.y,
           xOriginal: d.xOriginal,
           yOriginal: d.yOriginal,
-          
         }));
       });
-
 
       selection
         .selectAll(".points")
         .data(circlesData.flat())
-        .join("circle")
-        .attr("cx", (d) => d.x)
-        .attr("cy", (d) => d.y)
-        .attr("r", 3)
-        .attr("class", "points")
-        .attr("fill", (d) => d.color)
-        .attr("stroke", "black")
-        .attr("stroke-width", 0.5)
-        .on("mouseover", function (event, d) {
-          select(this).attr("opacity", 0.5);
-          
-            tooltip = select("#tooltip");
-            tooltip
-              .style("left", `${event.pageX + 5}px`)
-              .style("top", `${event.pageY + 5}px`)
-              .style("opacity", 1)
-              .html(tooltipValue(d));
-          
-        }).on("mouseout", function (event, d){
-          select(this).attr("opacity", 1);
-          tooltip.transition().duration(500).style("opacity", 0);
-        });
+        .join(
+          (enter) => {
+            enter
+              .append("circle")
+              .attr("cx", (d) => d.x)
+              .attr("cy", (d) => d.y)
+              .attr("r", 0)
+              .attr("class", "points")
+              .attr("fill", (d) => d.color)
+              .attr("stroke", "black")
+              .attr("stroke-width", 0.5)
+              .on("mouseover", function (event, d) {
+                select(this).attr("opacity", 0.5);
+
+                tooltip = select("#tooltip");
+                tooltip
+                  .style("left", `${event.pageX + 5}px`)
+                  .style("top", `${event.pageY + 5}px`)
+                  .style("opacity", 1)
+                  .html(tooltipValue(d));
+              })
+              .on("mouseout", function (event, d) {
+                select(this).attr("opacity", 1);
+                tooltip.transition().duration(500).style("opacity", 0);
+              })
+              .call((enter) =>
+                enter
+                  .transition()
+                  .delay(300)
+                  .duration(1000)
+                  .attr("r", (d) => 4)
+              );
+          },
+          (update) =>
+            update
+              .attr("r", 0)
+              .attr("cx", (d) => d.x)
+              .attr("cy", (d) => d.y)
+              .call((update) => {
+                update.transition().delay(1000).duration(1000).attr("r", 4);
+              })
+        );
       // ySeries.forEach((series, i) => {
       //   const lineData = filteredData.map((d) => ({
       //     x: xScale(xValue(d)),
@@ -6502,7 +7176,8 @@
       const yPos = (d, i) => {
         return (i + 1) * (height / (ySeries.length + 1));
       };
-      if (pointType == "circle") {
+      if (pointType === "circle") {
+        console.log("here");
         legendPoints
           .selectAll(".legendPoints")
           .data(ySeries)
@@ -6736,7 +7411,7 @@
       return arguments.length ? ((margin = _), my) : margin;
     };
     my.propotional = function (_) {
-      return arguments.length ? (my) : title;
+      return arguments.length ? (my) : propotional;
     };
     my.title = function (_) {
       return arguments?.length ? ((title = _), my) : title;
@@ -6796,7 +7471,7 @@
     ];
     const stackedSubGroupsAlt = [
       { subgroup: "Physics", color: "#d63031", title: "Physics" },
-      { subgroup: "History", color: "#e84393", title: "History" },
+      { subgroup: "History", color: "#00cec9", title: "History" },
       { subgroup: "Biology", color: "#0984e3", title: "Biology" },
     ];
 
@@ -8038,6 +8713,158 @@
         color: "#fdcb6e",
       },
     ];
+
+  const bubbleData = [
+    {
+      Country: "United States",
+      Population: 341534046,
+      "GDP per capita": 74554,
+      GDP: 25462700000000,
+      Region: "North America",
+    },
+    {
+      Country: "China",
+      "Population)": 1425179569,
+      "GDP per capita": 12604,
+      GDP: 17963200000000,
+      Region: "Asia",
+    },
+    {
+      Country: "Japan",
+      "Population)": 124997578,
+      "GDP per capita": 33850,
+      GDP: 4231140000000,
+      Region: "Asia",
+    },
+    {
+      Country: "Germany",
+      "Population)": 84086227,
+      "GDP per capita": 48429,
+      GDP: 4072190000000,
+      Region: "Europe",
+    },
+    {
+      Country: "India",
+      "Population)": 1425423212,
+      "GDP per capita": 2375,
+      GDP: 3385090000000,
+      Region: "Asia",
+    },
+    {
+      Country: "United Kingdom",
+      "Population)": 68179315,
+      "GDP per capita": 45038,
+      GDP: 3070670000000,
+      Region: "Europe",
+    },
+    {
+      Country: "France",
+      "Population)": 66277409,
+      "GDP per capita": 41989,
+      GDP: 2782910000000,
+      Region: "Europe",
+    },
+    {
+      Country: "Russia",
+      "Population)": 145579899,
+      "GDP per capita": 15390,
+      GDP: 2240420000000,
+      Region: "Europe",
+    },
+    {
+      Country: "Canada",
+      "Population)": 38821259,
+      "GDP per capita": 55120,
+      GDP: 2139840000000,
+      Region: "North America",
+    },
+    {
+      Country: "Italy",
+      "Population)": 59619115,
+      "GDP per capita": 33721,
+      GDP: 2010430000000,
+      Region: "Europe",
+    },
+    {
+      Country: "Brazil",
+      "Population)": 210306415,
+      "GDP per capita": 9130,
+      GDP: 1920100000000,
+      Region: "South America",
+    },
+    {
+      Country: "Australia",
+      "Population)": 26200984,
+      "GDP per capita": 63945,
+      GDP: 1675420000000,
+      Region: "Oceania",
+    },
+    {
+      Country: "South Korea",
+      "Population)": 51782512,
+      "GDP per capita": 32159,
+      GDP: 1665250000000,
+      Region: "Asia",
+    },
+    {
+      Country: "Mexico",
+      "Population)": 128613117,
+      "GDP per capita": 10996,
+      GDP: 1414190000000,
+      Region: "North America",
+    },
+    {
+      Country: "Spain",
+      "Population)": 47828382,
+      "GDP per capita": 29219,
+      GDP: 1397510000000,
+      Region: "Europe",
+    },
+    {
+      Country: "Indonesia",
+      "Population)": 278830529,
+      "GDP per capita": 4731,
+      GDP: 1319100000000,
+      Region: "Asia",
+    },
+    {
+      Country: "Saudi Arabia",
+      "Population)": 32175352,
+      "GDP per capita": 34441,
+      GDP: 1108150000000,
+      Region: "Middle East",
+    },
+    {
+      Country: "Netherlands",
+      "Population)": 17904421,
+      "GDP per capita": 55356,
+      GDP: 991115000000,
+      Region: "Europe",
+    },
+    {
+      Country: "Turkey",
+      "Population)": 87058473,
+      "GDP per capita": 10407,
+      GDP: 905988000000,
+      Region: "Middle East",
+    },
+    {
+      Country: "Switzerland",
+      "Population)": 8792182,
+      "GDP per capita": 91866,
+      GDP: 807706000000,
+      Region: "Europe",
+    },
+  ];
+
+  const bubbleYSeries = [
+    { title: "Europe", color: "#00cec9" },
+    { title: "Asia", color: "#fdcb6e" },
+    { title: "Middle East", color: "#00b894" },
+    { title: "North America", color: "#0984e3" },
+    { title: "South America", color: "#e17055" },
+    { title: "Oceania", color: "#6c5ce7" },
+  ];
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -13791,42 +14618,46 @@
     let data;
     let xValue;
     let radius = 8;
+    let gridX;
+    let gridY;
     const scale = 1.1;
     let margin = { top: 100, right: 50, bottom: 50, left: 50 };
     let tooltipValue = (d) => null;
     let timePeriod = "week";
+    let year;
     const my = (selection) => {
       selection.attr("width", width).attr("height", height);
-      console.log(selection);
 
-      // const paths = selection
-      //   .selectAll("path")
-      //   .data([null])
-      //   .join("path")
-      //   .attr("d", roundedRect(0, 0, 100, 100, 5, true))
-      //   .attr("fill", "red")
-      //   .attr("stroke", "grey")
-      //   .attr("stroke-width", 0.5);
+      let tooltip = checkForTooltip();
+      year = 2024;
 
-      let tooltip = select("#tooltip");
-      if (!tooltip) {
-        tooltip = select("body")
-          .append("div")
-          .attr("id", "tooltip")
-          .attr("class", "tooltip");
-      }
+      // console.log(data);
+      if (!gridX & !gridY) {
+        switch (timePeriod) {
+          case "week":
+            if (year) {
+              console.log(
+                range(53).map((d) => {
+                  let date =
+                    d + 1 < 10
+                      ? moment(`${year}W0${d + 1}`).format("ll")
+                      : moment(`${year}W${d + 1}`).format("ll");
+                  return date;
+                })
+              );
+            }
+            gridX = 13;
+            gridY = 4;
 
-      console.log(data);
-      let gridX;
-      let gridY;
-      switch (timePeriod) {
-        case "week":
-          gridX = 13;
-          gridY = 4;
-          break;
-        case "day":
-          gridX = 52;
-          gridY = 7;
+            break;
+          case "day":
+            gridX = 52;
+            gridY = 7;
+            break;
+          case "month":
+            gridX = 4;
+            gridY = 3;
+        }
       }
       const xScale = band()
         .domain(range(gridX))
@@ -13843,7 +14674,7 @@
         .domain(extent(data, colorValue))
         .range([Greens(0), Greens(1)]);
 
-      console.log(extent(data, colorValue));
+      // console.log(d3.extent(data, colorValue));
       const minDimension = xScale.bandwidth();
 
       const marks = data.map((d) => ({
@@ -13857,8 +14688,9 @@
         tooltip: tooltipValue(d),
         data: d,
       }));
-      console.log(xScale(6));
-      console.log(marks);
+
+      // console.log(xScale(6));
+      // console.log(marks);
       selection
         .selectAll(".activitySquare")
         .data(marks)
@@ -13873,12 +14705,13 @@
           console.log(d);
         })
         .on("mouseover", function (event, d) {
+          tooltip = select("#tooltip");
           tooltip
             .html(d.tooltip)
             .style("left", `${event.pageX + 5}px`)
             .style("top", `${event.pageY - 28}px`);
           tooltip.transition().duration(200).style("opacity", 0.9);
-          
+
           select(this).attr(
             "transform",
             `scale(${scale}) translate(${d.x - d.x * scale}, ${
@@ -13919,20 +14752,19 @@
   const replotFunction = (chartId, svg, plotObj, legend = null) => {
     switch (chartId) {
       case "scatter-svg":
-        console.log(chartId);
         if (plotObj.xLabel() === "Petal Length") {
           plotObj
-            .xValue((d) => d.petalWidth)
+            .xValue("petalWidth")
             .xLabel("Petal Width")
-            .yValue((d) => d.petalLength)
+            .yValue("petalLength")
             .yLabel("Petal Length");
 
           svg.call(plotObj);
         } else {
           plotObj
-            .xValue((d) => d.petalLength)
+            .xValue("petalLength")
             .xLabel("Petal Length")
-            .yValue((d) => d.sepalLength)
+            .yValue("sepalLength")
             .yLabel("Sepal Length");
 
           svg.call(plotObj);
@@ -13941,14 +14773,14 @@
       case "bar-svg":
         if (plotObj.yLabel() === "Quantity") {
           plotObj
-            .yValue((d) => d.quality)
+            .yValue("quality")
             .yLabel("Quality")
             .title("Quality of fruit in the Store inventory")
             .color("#fdcb6e");
           svg.call(plotObj);
         } else {
           plotObj
-            .yValue((d) => d.quantity)
+            .yValue("quantity")
             .yLabel("Quantity")
             .title("Quantity of fruit in the Store inventory")
             .color("#e17055");
@@ -13988,7 +14820,336 @@
           svg.call(legend);
         }
         break;
+      case "bubble-svg":
+        console.log(plotObj);
+        console.log(plotObj.clustered());
+        if (plotObj.clustered()) {
+          plotObj
+            .clustered(false)
+            .data(bubbleData.slice(0, 5))
+            .title("Top 5 Countries by GDP");
+          svg.call(plotObj);
+        } else {
+          console.log("here");
+          plotObj.clustered(true).data(bubbleData).title("GDP of Countries");
+          svg.call(plotObj);
+        }
     }
+  };
+
+  function wrap(text, width, h) {
+    text.each(function () {
+      var text = select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        x = text.attr("x"),
+        y = text.attr("y"),
+        dy = 0, //parseFloat(text.attr("dy")),
+        tspan = text
+          .text(null)
+          .append("tspan")
+          .attr("x", x)
+          .attr("y", y)
+          .attr("dy", dy + "em");
+
+      console.log();
+      while ((word = words.pop())) {
+        line.push(word);
+        tspan.text(line.join(" "));
+        if (tspan.node().getComputedTextLength() > width) {
+          line.pop();
+          tspan.text(line.join(" "));
+          line = [word];
+          tspan = text
+            .append("tspan")
+            .attr("x", x)
+            .attr("y", y)
+            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+            .text(word);
+        }
+      }
+      const totalHeight = lineNumber * lineHeight * text.attr("font-size"); // Approximate height in pixels
+      text.attr("transform", `translate(0, ${-totalHeight / 2})`);
+    });
+  }
+
+  const bubbleChart = () => {
+    let width;
+    let height;
+    let data;
+    let title;
+    let margin = { top: 40, right: 5, bottom: 5, left: 5 };
+    let yLabel;
+    let xLabel;
+    let clustered = true;
+    let colorValue;
+    let colorPalette;
+    let colorList = [
+      "#00b894",
+      "#6c5ce7",
+      "#fdcb6e",
+      "#e17055",
+      "#00cec9",
+      "#d63031",
+      "#e84393",
+      "#0984e3",
+    ];
+    let bubbleValue;
+    let labelValue;
+    let padding = 5;
+    let maxRadius = 90;
+
+    const my = (selection) => {
+      selection.attr("width", width).attr("height", height);
+      // selection.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`)
+      let colorScale;
+      if (colorPalette) {
+        colorScale = colorPalette;
+        console.log(colorPalette);
+      } else {
+        colorScale = ordinal()
+          .domain(data.map((d) => d[colorValue]))
+          .range(colorList);
+      }
+
+      if (clustered) {
+        const pack = index()
+          .size([
+            width - margin.left - margin.right,
+            height - margin.top - margin.bottom,
+          ])
+          .padding(10);
+        const root = pack(
+          hierarchy({ children: data }).sum((d) => d[bubbleValue])
+        );
+        console.log(root.leaves());
+        selection
+          .selectAll(".bubbles")
+          .data(root.leaves())
+          .join(
+            (enter) => {
+              enter
+                .append("circle")
+                .attr("class", "bubbles")
+                .attr("cx", (d) => margin.left+d.x)
+                .attr("cy", (d) => margin.top+ d.y)
+                .attr("r", 0)
+                .attr("fill", (d) => colorScale(d.data[colorValue]))
+                .attr("stroke", "#686868")
+                .attr("stroke-width", "1px")
+                .call((enter) =>
+                  enter
+                    .transition()
+                    .duration(1000)
+                    .attr("r", (d) => d.r)
+                );
+            },
+            (update) => {
+              update.call((update) =>
+                update
+                  .transition()
+                  .duration(1000)
+                  .attr("r", (d) => d.r)
+                  .attr("cx", (d) => margin.left+d.x)
+                  
+                  .attr("cy", (d) => margin.top+ d.y)
+              );
+            },
+            (exit) =>
+              exit
+                .transition()
+                .duration(1000)
+                .attr("r", 0)
+                .call((exit) => exit.remove())
+          );
+        selection
+          .selectAll(".bubble-label")
+          .data(root.leaves())
+          .join(
+            (enter) => {
+              enter
+                .append("text")
+                .attr("font-size", 0)
+                .attr("class", "bubble-label")
+                .attr("y", (d) => margin.top+ d.y)
+                .attr("x", (d) => margin.left+d.x)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle")
+                .attr("text-align", "middle")
+                .attr("dy", "0.1em")
+                .text((d) => d.data[labelValue])
+                .call((enter) => {
+                  enter
+                    .transition()
+                    .duration(1000)
+                    .attr("font-size", (d) => d.r / 3)
+                    .call(wrap, 100);
+                });
+            },
+            (update) => {
+              update
+                .text((d) => d.data[labelValue])
+                .transition()
+                .duration(1000)
+                .attr("y", (d) =>margin.top+ d.y)
+                .attr("x", (d) => margin.left+d.x);
+            }
+          );
+      } else {
+        {
+          data.sort((a, b) => b[bubbleValue] - a[bubbleValue]);
+        }
+        console.log(data);
+
+        const bubbleScale = sqrt()
+          .domain([0, max(data, (d) => d[bubbleValue])])
+          .range([0, maxRadius]);
+
+        let xPos = margin.left;
+        const marks = data.map((d, i) => {
+          xPos += padding + bubbleScale(d[bubbleValue]);
+          const obj = {
+            x: xPos,
+            y: height / 2,
+            r: bubbleScale(d[bubbleValue]),
+            fill: colorScale(d[colorValue]),
+            label: d[labelValue],
+          };
+          xPos += padding + bubbleScale(d[bubbleValue]);
+          return obj;
+        });
+
+        selection
+          .selectAll(".bubbles")
+          .data(marks)
+          .join(
+            (enter) => {
+              console.log(enter);
+              enter
+                .append("circle")
+                .attr("class", "bubbles")
+                .attr("cx", (d) => d.x)
+                .attr("cy", (d) => d.y)
+                .attr("r", (d) => 0)
+                .attr("fill", (d) => d.fill)
+                .attr("stroke", "#686868")
+                .attr("stroke-width", "1px")
+                .call((enter) =>
+                  enter
+                    .transition()
+                    .delay((d, i) => i * 60)
+                    .duration(1000)
+                    .attr("r", (d) => d.r)
+                );
+            },
+            (update) => {
+              update.call((update) => {
+                update
+                  .transition()
+                  .duration(1000)
+                  .attr("cx", (d) => d.x)
+                  .attr("cy", (d) => d.y)
+                  .attr("r", (d) => d.r);
+              });
+            }
+          );
+
+        selection
+          .selectAll(".bubble-label")
+          .data(marks)
+          .join(
+            (enter) => {
+              enter
+                .append("text")
+                .attr("font-size", 0)
+                .attr("class", "bubble-label")
+                .attr("y", (d) => d.y)
+                .attr("x", (d) => d.x)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle")
+                .attr("text-align", "middle")
+                .attr("dy", "0.1em")
+                .text((d) => d.label)
+                .call((enter) => {
+                  enter
+                    .transition()
+                    .duration(1000)
+                    .attr("font-size", (d) => d.r / 3)
+                    .call(wrap, 100);
+                });
+            },
+            (update) =>
+              update
+                .transition()
+                .duration(1000)
+                .text((d) => d.label)
+                .attr("y", (d) => d.y)
+                .attr("x", (d) => d.x)
+          );
+      }
+      if (title) {
+        // console.log(title);
+        selection
+          .selectAll(".titleLabel")
+          .data([null])
+          .join("text")
+          .attr("class", "axisLabel titleLabel")
+          .attr("x", width / 2)
+          .attr("y", margin.top / 2)
+          .attr("text-anchor", "middle")
+          .text(title);
+      }
+    };
+
+    my.width = function (_) {
+      return arguments.length ? ((width = +_), my) : width;
+    };
+
+    my.height = function (_) {
+      return arguments.length ? ((height = +_), my) : width;
+    };
+
+    my.data = function (_) {
+      return arguments.length ? ((data = _), my) : data;
+    };
+    my.margin = function (_) {
+      return arguments.length ? ((margin = _), my) : margin;
+    };
+    my.bubbleSize = function (_) {
+      return arguments.length ? ((bubbleSize = _), my) : bubbleSize;
+    };
+    my.title = function (_) {
+      return arguments?.length ? ((title = _), my) : title;
+    };
+    my.xLabel = function (_) {
+      return arguments.length ? ((xLabel = _), my) : xLabel;
+    };
+    my.yLabel = function (_) {
+      return arguments.length ? ((yLabel = _), my) : yLabel;
+    };
+    my.colorValue = function (_) {
+      return arguments.length ? ((colorValue = _), my) : colorValue;
+    };
+    my.colorPalette = function (_) {
+      return arguments.length ? ((colorPalette = _), my) : colorPalette;
+    };
+    my.bubbleValue = function (_) {
+      return arguments.length ? ((bubbleValue = _), my) : bubbleValue;
+    };
+    my.labelValue = function (_) {
+      return arguments.length ? ((labelValue = _), my) : labelValue;
+    };
+    my.clustered = function (_) {
+      return arguments.length ? ((clustered = _), my) : clustered;
+    };
+    my.maxRadius = function (_) {
+      return arguments.length ? ((maxRadius = _), my) : maxRadius;
+    };
+
+    return my;
   };
 
   window.saveChart = saveChart;
@@ -14006,6 +15167,13 @@
   const margin = { top: 50, right: 50, bottom: 80, left: 50 };
 
   function main() {
+    const arr = range(1, 53);
+    const newArr = arr.map((d) =>
+      d < 10
+        ? moment(`2024W0${d}`).format("DD-MM-YYYY")
+        : moment(`2024W${d}`).format("DD-MM-YYYY")
+    );
+    console.log(newArr);
     // ------------------  Section --------------------
     // Scatter plot data,  calling and adding legend
 
@@ -14019,8 +15187,8 @@
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(irisData)
-      .xValue((d) => d.petalLength)
-      .yValue((d) => d.sepalLength)
+      .xValue("petalLength")
+      .yValue("sepalLength")
       .colorValue((d) => d.species)
       .margin(margin)
       .radius(5)
@@ -14049,8 +15217,8 @@
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(barChartData)
-      .xValue((d) => d.fruit)
-      .yValue((d) => d.quantity)
+      .xValue("fruit")
+      .yValue("quantity")
       .margin(margin)
       .xLabel("Fruit")
       .yLabel("Quantity")
@@ -14077,9 +15245,9 @@
     chart3.call(line);
 
     const lineLegend = legend()
-      .width(80)
+      .width(90)
       .height(80)
-      .x(widthHeight[0] - 80)
+      .x(widthHeight[0] - 100)
       .y(50)
       .ySeries(lineChartSeriesInfo)
       .backgroundColor("#e3e3e3")
@@ -14113,26 +15281,64 @@
     chart4.call(stacked);
     chart4.call(stackedBarLegend);
 
-    const chart5 = appendSvg("activity");
+    // ------------------  Section --------------------
+    // bubble plot data,  calling and adding legend
+
+    const chart5 = appendSvg("bubble");
+    const bubble = bubbleChart()
+      .width(widthHeight[0])
+      .height(widthHeight[1])
+      .data(bubbleData)
+      .bubbleValue("GDP")
+      .labelValue("Country")
+      .colorValue("Region")
+      // .colorPalette(bubbleYSeries)
+      .clustered(true)
+      .title("GDP of Countries");
+    // .margin();
+
+    const bubbleLegend = legend()
+      .x(10)
+      .y(widthHeight[1] - 100)
+      .width(100)
+      .height(100)
+      .ySeries(bubbleYSeries)
+      .legendTitle("Region");
+
+
+    chart5.call(bubble);
+    chart5.call(bubbleLegend);
+    // ------------------  Section --------------------
+    // Activity plot data,  calling and adding legend
+
+    const chart6 = appendSvg("activity");
     const weeklyData = [];
-    for (let i = 0; i < 52; i++) {
+    for (let i = 1; i < 53; i++) {
       weeklyData.push({
         weekNumber: i,
         activity: Math.floor(Math.random() * 10),
         year: 2024,
       });
     }
-    const plot5 = activityMonitorSquares()
+    const activity = activityMonitorSquares()
       .width(widthHeight[0])
       .height(widthHeight[1])
       .data(weeklyData)
       .xValue((d) => d.weekNumber)
-      .tooltipValue(
-        (d) => `Week Beginning: ${moment(`${d.year}W${d.weekNumber}`)} `
-      );
-    chart5.call(plot5);
+      .tooltipValue((d) => {
+        // console.log(d)
+        let date =
+          d.weekNumber < 10
+            ? moment(`2024W0${d.weekNumber}`).format("ll")
+            : moment(`2024W${d.weekNumber}`).format("ll");
 
-    // const replot =
+        return `Week Beginning: ${date}`;
+      });
+    chart6.call(activity);
+
+    // ------------------  Section --------------------
+    // replotting functions
+
     window.replot = (chartId) => {
       switch (chartId) {
         case "scatter-svg":
@@ -14146,6 +15352,9 @@
           break;
         case "stacked-bar-svg":
           replotFunction(chartId, chart4, stacked, stackedBarLegend);
+          break;
+        case "bubble-svg":
+          replotFunction(chartId, chart5, bubble);
       }
     };
   }

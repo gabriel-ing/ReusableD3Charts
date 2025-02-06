@@ -45,6 +45,6 @@
   ];
   export const stackedSubGroupsAlt = [
     { subgroup: "Physics", color: "#d63031", title: "Physics" },
-    { subgroup: "History", color: "#e84393", title: "History" },
+    { subgroup: "History", color: "#00cec9", title: "History" },
     { subgroup: "Biology", color: "#0984e3", title: "Biology" },
   ];

@@ -1,22 +1,22 @@
+import { bubbleData } from "../data/bubbleData";
 import { lineChartData, lineChartData2020 } from "../data/lineChartData";
 import { stackedSubGroups, stackedSubGroupsAlt } from "../data/stackedBarData";
 export const replotFunction = (chartId, svg, plotObj, legend = null) => {
   switch (chartId) {
     case "scatter-svg":
-      console.log(chartId);
       if (plotObj.xLabel() === "Petal Length") {
         plotObj
-          .xValue((d) => d.petalWidth)
+          .xValue("petalWidth")
           .xLabel("Petal Width")
-          .yValue((d) => d.petalLength)
+          .yValue("petalLength")
           .yLabel("Petal Length");
 
         svg.call(plotObj);
       } else {
         plotObj
-          .xValue((d) => d.petalLength)
+          .xValue("petalLength")
           .xLabel("Petal Length")
-          .yValue((d) => d.sepalLength)
+          .yValue("sepalLength")
           .yLabel("Sepal Length");
 
         svg.call(plotObj);
@@ -25,14 +25,14 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
     case "bar-svg":
       if (plotObj.yLabel() === "Quantity") {
         plotObj
-          .yValue((d) => d.quality)
+          .yValue("quality")
           .yLabel("Quality")
           .title("Quality of fruit in the Store inventory")
           .color("#fdcb6e");
         svg.call(plotObj);
       } else {
         plotObj
-          .yValue((d) => d.quantity)
+          .yValue("quantity")
           .yLabel("Quantity")
           .title("Quantity of fruit in the Store inventory")
           .color("#e17055");
@@ -72,5 +72,19 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
         svg.call(legend);
       }
       break;
+    case "bubble-svg":
+      console.log(plotObj);
+      console.log(plotObj.clustered());
+      if (plotObj.clustered()) {
+        plotObj
+          .clustered(false)
+          .data(bubbleData.slice(0, 5))
+          .title("Top 5 Countries by GDP");
+        svg.call(plotObj);
+      } else {
+        console.log("here");
+        plotObj.clustered(true).data(bubbleData).title("GDP of Countries");
+        svg.call(plotObj);
+      }
   }
 };

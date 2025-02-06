@@ -74,7 +74,8 @@ export const legend = () => {
     const yPos = (d, i) => {
       return (i + 1) * (height / (ySeries.length + 1));
     };
-    if (pointType == "circle") {
+    if (pointType === "circle") {
+      console.log("here")
       legendPoints
         .selectAll(".legendPoints")
         .data(ySeries)

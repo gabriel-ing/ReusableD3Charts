@@ -65,43 +65,46 @@ export const scatterPlot = () => {
     if (xType === "category") {
       x = d3
         .scalePoint()
-        .domain(filteredData.map(xValue))
+        .domain(filteredData.map((d) => d[xValue]))
         .range([margin.left, width - margin.right])
         .padding(0.2);
     }
     if (xType === "time") {
       x = d3
         .scaleTime()
-        .domain(d3.extent(filteredData, xValue))
+        .domain(d3.extent(filteredData, (d) => d[xValue]))
         .range([margin.left, width - margin.right]);
     } else {
       x = d3
         .scaleLinear()
-        .domain([d3.min(filteredData, xValue), d3.max(filteredData, xValue)])
+        .domain([
+          d3.min(filteredData, (d) => d[xValue]),
+          d3.max(filteredData, (d) => d[xValue]),
+        ])
         .range([margin.left, width - margin.right]);
     }
 
     if (yType === "category") {
       y = d3
         .scalePoint()
-        .domain(filteredData.map(yValue))
+        .domain(filteredData.map((d) => d[yValue]))
         .range([height - margin.bottom, margin.top])
         .padding(0.2);
     } else {
       y = d3
         .scaleLinear()
-        .domain([0, d3.max(filteredData, yValue)])
+        .domain([0, d3.max(filteredData, (d) => d[yValue])])
         .range([height - margin.bottom, margin.top]);
     }
     /* 
         const x = d3
         .scaleLinear()
-        .domain(d3.extent(data, xValue))
+        .domain(d3.extent(data, (d)=>d[xValue]))
         .range([margin.left, width - margin.right]);
 
         const y = d3
         .scaleLinear()
-        .domain(d3.extent(data, yValue))
+        .domain(d3.extent(data, (d) => d[yValue]))
         .range([height - margin.bottom, margin.top]);
         
         
@@ -117,8 +120,8 @@ export const scatterPlot = () => {
     // marks.color = colorScale(marks.color);
 
     const marks = filteredData.map((d) => ({
-      x: x(xValue(d)),
-      y: y(yValue(d)),
+      x: x(d[xValue]),
+      y: y(d[yValue]),
       r: radius,
       color: colorScale(colorValue(d)),
       tooltip: tooltipValue(d),

@@ -5,52 +5,72 @@
     .chart {
       width: 600px;
       height: 400px;
+      /* flex-grow: 4; */
     }
     .chart-container {
       border: 1px solid black;
+      display: grid;
+      grid-template-columns: 2;
       margin: 20px;
       padding: 10px;
+      /* flex-grow: 4; */
       border-radius: 10px;
-      width:600px;
+      width: 600px;
+    }
+    .charts-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-evenly;;
+      grid-template-columns: 2;
+      margin-top: 150px;
     }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-weight:200;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-weight: 200;
     }
-    .axisLabel{
-        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    .axisLabel {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
-    .titleLabel.axisLabel{
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 15px;
-        font-weight:400;
-        }
-    .ticks{
-        font-size: 12px;
-        font-weight:100;
+    .titleLabel.axisLabel {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 15px;
+      font-weight: 400;
     }
-    .barLabels{
-      font-size: 12px;;
-      font-weight:100;
+    .ticks {
+      font-size: 12px;
+      font-weight: 100;
+    }
+    .barLabels {
+      font-size: 12px;
+      font-weight: 100;
     }
 
-    .legendText{
-        font-size: 12px;
+    .legendText {
+      font-size: 12px;
     }
-    .tooltip{
-        font-size: 50px;
+    .tooltip {
+      font-size: 50px;
     }
-    #header{
-        background-color: "mint";
-        width:100%;
-        height:"50px";
+    #header {
+      background-color:#c2bedf;
+      width: 100%;
+      /* height: 130px; */
+
+      border-bottom: 1px solid black ;
+      left: 0px;
+      top: 0px;
+      padding:10px;
+      position:fixed;
+      
+    }
+    h1{
+      line-height: 13px;
     }
   </style>
 </head>
 <body>
-    <div id="header" >
-
-    </div>
+  <div id="header" class="header"><h1>Reusable plots</h1><p>These are plots created with D3.js which are designed to be as Reusable as possible. As such, the inputs into the plots are separated from the plotting logic. The plots can also be replotted with different data, with some basic transition animations. There is also a specified function to download a static SVG image of the plot, which can be used in other programs including as raw images in a PowerPoint or Word document, or as an editable SVG in Illustrator or other graphic design programs.  </p></div>
+  <div class="charts-container">
     <div class="chart-container">
       <button onclick="saveChart('scatter-svg')">Download Chart</button>
       <button onclick="replot('scatter-svg')">Replot Chart</button>
@@ -72,9 +92,15 @@
       <div class="chart" id="stacked-bar"></div>
     </div>
     <div class="chart-container">
-        <button onclick="saveChart('activity-svg')">Download Chart</button>
-        <button onclick="replot('activity-svg')">Replot Chart</button>
-        <div class="chart" id="activity"></div>
-      </div>
+      <button onclick="saveChart('bubble-svg')">Download Chart</button>
+      <button onclick="replot('bubble-svg')">Replot Chart</button>
+      <div class="chart" id="bubble"></div>
+    </div>
+    <div class="chart-container">
+      <button onclick="saveChart('activity-svg')">Download Chart</button>
+      <button onclick="replot('activity-svg')">Replot Chart</button>
+      <div class="chart" id="activity"></div>
+    </div>
+  </div>
   <script src="bundle.js"></script>
 </body>

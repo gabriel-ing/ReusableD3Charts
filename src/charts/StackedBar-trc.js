@@ -164,7 +164,7 @@ export const stackedBarChart = () => {
     return arguments.length ? ((margin = _), my) : margin;
   };
   my.propotional = function (_) {
-    return arguments.length ? ((proportional = _), my) : title;
+    return arguments.length ? ((proportional = _), my) : propotional;
   };
   my.title = function (_) {
     return arguments?.length ? ((title = _), my) : title;
