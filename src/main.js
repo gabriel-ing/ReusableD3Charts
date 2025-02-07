@@ -32,8 +32,8 @@ const appendSvg = (divID) => {
     .attr("preserveAspectRatio", "xMinYMin meet")
     // .attr("viewBox", "0 0 600 400")
     .attr("width", "100%")
-    .attr("height", "100%")
-    // .style("display", "block");
+    .attr("height", "100%");
+  // .style("display", "block");
   return svg;
 };
 
@@ -189,7 +189,7 @@ function main() {
     weeklyData.push({
       weekNumber: i,
       activity: Math.floor(Math.random() * 10),
-      year: 2024,
+      
     });
   }
   const activity = activityMonitorSquares()
@@ -198,15 +198,17 @@ function main() {
     .data(weeklyData)
     .xValue((d) => d.weekNumber)
     .colorValue("activity")
+    .year(2024)
     .tooltipValue((d) => {
       // console.log(d)
       let date =
         d.weekNumber < 10
-          ? moment(`2024W0${d.weekNumber}`).format("ll")
-          : moment(`2024W${d.weekNumber}`).format("ll");
+          ? moment(`${activity.year()}W0${d.weekNumber}`).format("ll")
+          : moment(`${activity.year()}W${d.weekNumber}`).format("ll");
 
       return `Week Beginning: ${date}<br> Activities : ${d["activity"]}`;
-    }).title("Number of Activities per week in 2024");
+    })
+    .title("Number of Activities per week in 2024");
   chart6.call(activity);
 
   // ------------------  Section --------------------
@@ -228,9 +230,9 @@ function main() {
         break;
       case "bubble-svg":
         replotFunction(chartId, chart5, bubble);
-        break
+        break;
       case "activity-svg":
-        replotFunction(chartId, chart6, activity)
+        replotFunction(chartId, chart6, activity);
     }
   };
 }

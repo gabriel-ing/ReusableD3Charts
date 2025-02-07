@@ -14678,59 +14678,63 @@
       selection.attr("viewBox", `0 0 ${width} ${height}`);
 
       let tooltip = checkForTooltip();
-      year = 2024;
+      // year = 2024;
+      console.log(year);
 
-      if (!gridX & !gridY) {
-        switch (timePeriod) {
-          case "week":
-            if (year) {
-              // const months =
-              //   data.map(d=> {
-              //     let date =
-              //       d.weekNumber + 1 < 10
-              //         ? moment(`${year}W0${d.weekNumber + 1}`).format("M")
-              //         : moment(`${year}W${d.weekNumber + 1}`).format("M");
-              //     return +date;
-              //   })
+      switch (timePeriod) {
+        case "week":
+          if (year) {
+            // const months =
+            //   data.map(d=> {
+            //     let date =
+            //       d.weekNumber + 1 < 10
+            //         ? moment(`${year}W0${d.weekNumber + 1}`).format("M")
+            //         : moment(`${year}W${d.weekNumber + 1}`).format("M");
+            //     return +date;
+            //   })
 
-              data.map((d) => {
-                d.month =
-                  d.weekNumber < 10
-                    ? +moment(`${year}W0${d.weekNumber}`).format("M")
-                    : +moment(`${year}W${d.weekNumber}`).format("M");
-              });
+            data.map((d) => {
+              d.month =
+                d.weekNumber < 10
+                  ? +moment(`${year}W0${d.weekNumber}`).format("M")
+                  : +moment(`${year}W${d.weekNumber}`).format("M");
+              if (d.weekNumber === 14) {
+                console.log(d.month);
+                console.log(year);
+              }
+            });
 
-              months = [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-              ];
-              gridX = 12;
-              gridY = 5;
-            } else {
-              gridX = 13;
-              gridY = 4;
-            }
+            months = [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ];
+            gridX = 12;
+            gridY = 5;
+          } else {
+            gridX = 13;
+            gridY = 4;
+          }
 
-            break;
-          case "day":
-            gridX = 52;
-            gridY = 7;
-            break;
-          case "month":
-            gridX = 4;
-            gridY = 3;
-        }
+          break;
+        case "day":
+          gridX = 52;
+          gridY = 7;
+          break;
+        case "month":
+          gridX = 4;
+          gridY = 3;
       }
+
       const xScale = band()
         .domain(range(gridX))
         .range([margin.left, width - margin.right])
@@ -14749,12 +14753,17 @@
         let currentMonth = 0;
 
         marks = data.map((d) => {
+          if (currentMonth === 0 & +d.month===12) {
+            console.log(d.month);
+            d.month = 1;
+          }
           ypos = currentMonth === d.month ? ypos + 1 : 0;
           currentMonth = d.month;
 
           const markobj = {
             xpos: d.month - 1,
             ypos: ypos,
+            year: year,
             y: yScale(ypos),
             x: xScale(d.month - 1),
             monthLabel: months[d.month - 1],
@@ -14772,6 +14781,7 @@
           xpos: Math.floor(xValue(d) / gridY),
           ypos: xValue(d) % gridY,
           y: xScale(xValue(d) % gridY),
+          year: year,
           x: xScale(Math.floor(xValue(d) / gridY)),
           colorValue: d[colorValue],
           color: colorScale(d[colorValue]),
@@ -14793,6 +14803,9 @@
               .attr("fill", (d) => d.color)
               .attr("stroke", "#666666")
               .attr("stroke-width", minDimension / 200)
+              .on("click", (event, d) => {
+                console.log(d);
+              })
               .on("mouseover", function (event, d) {
                 tooltip = select("#tooltip");
                 tooltip
@@ -14827,13 +14840,13 @@
             update
               .transition()
               .duration(500)
-              .delay((d,i)=>i*10)
+              .delay((d, i) => i * 10)
               .attr("d", (d) => roundedRect(d.x, d.y, 0, 0, radius))
               .call((update) => {
                 update
                   .transition()
                   .duration(500)
-                  .delay((d,i)=>i*10)
+                  .delay((d, i) => i * 10)
                   .attr("fill", (d) => d.color)
                   .attr("d", (d) =>
                     roundedRect(d.x, d.y, minDimension, minDimension, radius)
@@ -15027,6 +15040,9 @@
     my.colors = function (_) {
       return arguments.length ? ((colors = _), my) : colors;
     };
+    my.year = function (_) {
+      return arguments.length ? ((year = _), my) : year;
+    };
 
     return my;
   };
@@ -15119,19 +15135,28 @@
         break;
       case "activity-svg":
         console.log(plotObj.colors());
-        if (
-          plotObj.title() === "Number of Activities per week in 2024"
-        ) {
+        if (plotObj.title() === "Number of Activities per week in 2024") {
           console.log(true);
           plotObj
             .colorRange(() => [0, 5, 10])
-            .colors([RdYlGn(0), RdYlGn(0.5), RdYlGn(1)])
-            .title("Number of activities per week, colored by proximity to target (5 p/w)");
+            .year(2023)
+            .colors([
+              RdYlGn(0),
+              RdYlGn(0.5),
+              RdYlGn(1),
+            ])
+            .title(
+              "Number of activities per week in 2023, colored by proximity to target (5 p/w)"
+            );
           svg.call(plotObj);
         } else {
           console.log(false);
           plotObj
-            .colorRange(()=> [0, max(plotObj.data(), (d)=>d[plotObj.colorValue()])])
+            .year(2024)
+            .colorRange(() => [
+              0,
+              max(plotObj.data(), (d) => d[plotObj.colorValue()]),
+            ])
             .colors([Greens(0), Greens(1)])
             .title("Number of Activities per week in 2024");
 
@@ -15475,7 +15500,7 @@
       // .attr("viewBox", "0 0 600 400")
       .attr("width", "100%")
       .attr("height", "100%");
-      // .style("display", "block");
+    // .style("display", "block");
     return svg;
   };
 
@@ -15631,7 +15656,7 @@
       weeklyData.push({
         weekNumber: i,
         activity: Math.floor(Math.random() * 10),
-        year: 2024,
+        
       });
     }
     const activity = activityMonitorSquares()
@@ -15640,15 +15665,17 @@
       .data(weeklyData)
       .xValue((d) => d.weekNumber)
       .colorValue("activity")
+      .year(2024)
       .tooltipValue((d) => {
         // console.log(d)
         let date =
           d.weekNumber < 10
-            ? moment(`2024W0${d.weekNumber}`).format("ll")
-            : moment(`2024W${d.weekNumber}`).format("ll");
+            ? moment(`${activity.year()}W0${d.weekNumber}`).format("ll")
+            : moment(`${activity.year()}W${d.weekNumber}`).format("ll");
 
         return `Week Beginning: ${date}<br> Activities : ${d["activity"]}`;
-      }).title("Number of Activities per week in 2024");
+      })
+      .title("Number of Activities per week in 2024");
     chart6.call(activity);
 
     // ------------------  Section --------------------
@@ -15670,7 +15697,7 @@
           break;
         case "bubble-svg":
           replotFunction(chartId, chart5, bubble);
-          break
+          break;
         case "activity-svg":
           replotFunction(chartId, chart6, activity);
       }

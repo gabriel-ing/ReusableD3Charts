@@ -90,19 +90,28 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
       break;
     case "activity-svg":
       console.log(plotObj.colors());
-      if (
-        plotObj.title() === "Number of Activities per week in 2024"
-      ) {
+      if (plotObj.title() === "Number of Activities per week in 2024") {
         console.log(true);
         plotObj
           .colorRange(() => [0, 5, 10])
-          .colors([d3.interpolateRdYlGn(0), d3.interpolateRdYlGn(0.5), d3.interpolateRdYlGn(1)])
-          .title("Number of activities per week, colored by proximity to target (5 p/w)");
+          .year(2023)
+          .colors([
+            d3.interpolateRdYlGn(0),
+            d3.interpolateRdYlGn(0.5),
+            d3.interpolateRdYlGn(1),
+          ])
+          .title(
+            "Number of activities per week in 2023, colored by proximity to target (5 p/w)"
+          );
         svg.call(plotObj);
       } else {
         console.log(false);
         plotObj
-          .colorRange(()=> [0, d3.max(plotObj.data(), (d)=>d[plotObj.colorValue()])])
+          .year(2024)
+          .colorRange(() => [
+            0,
+            d3.max(plotObj.data(), (d) => d[plotObj.colorValue()]),
+          ])
           .colors([d3.interpolateGreens(0), d3.interpolateGreens(1)])
           .title("Number of Activities per week in 2024");
 

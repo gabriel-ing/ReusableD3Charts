@@ -30,59 +30,63 @@ export const activityMonitorSquares = () => {
     selection.attr("viewBox", `0 0 ${width} ${height}`);
 
     let tooltip = checkForTooltip();
-    year = 2024;
+    // year = 2024;
+    console.log(year);
 
-    if (!gridX & !gridY) {
-      switch (timePeriod) {
-        case "week":
-          if (year) {
-            // const months =
-            //   data.map(d=> {
-            //     let date =
-            //       d.weekNumber + 1 < 10
-            //         ? moment(`${year}W0${d.weekNumber + 1}`).format("M")
-            //         : moment(`${year}W${d.weekNumber + 1}`).format("M");
-            //     return +date;
-            //   })
+    switch (timePeriod) {
+      case "week":
+        if (year) {
+          // const months =
+          //   data.map(d=> {
+          //     let date =
+          //       d.weekNumber + 1 < 10
+          //         ? moment(`${year}W0${d.weekNumber + 1}`).format("M")
+          //         : moment(`${year}W${d.weekNumber + 1}`).format("M");
+          //     return +date;
+          //   })
 
-            data.map((d) => {
-              d.month =
-                d.weekNumber < 10
-                  ? +moment(`${year}W0${d.weekNumber}`).format("M")
-                  : +moment(`${year}W${d.weekNumber}`).format("M");
-            });
+          data.map((d) => {
+            d.month =
+              d.weekNumber < 10
+                ? +moment(`${year}W0${d.weekNumber}`).format("M")
+                : +moment(`${year}W${d.weekNumber}`).format("M");
+            if (d.weekNumber === 14) {
+              console.log(d.month);
+              console.log(year);
+            }
+          });
 
-            months = [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ];
-            gridX = 12;
-            gridY = 5;
-          } else {
-            gridX = 13;
-            gridY = 4;
-          }
+          months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+          gridX = 12;
+          gridY = 5;
+        } else {
+          gridX = 13;
+          gridY = 4;
+        }
 
-          break;
-        case "day":
-          gridX = 52;
-          gridY = 7;
-          break;
-        case "month":
-          gridX = 4;
-          gridY = 3;
-      }
+        break;
+      case "day":
+        gridX = 52;
+        gridY = 7;
+        break;
+      case "month":
+        gridX = 4;
+        gridY = 3;
     }
+
     const xScale = d3
       .scaleBand()
       .domain(d3.range(gridX))
@@ -103,12 +107,17 @@ export const activityMonitorSquares = () => {
       let currentMonth = 0;
 
       marks = data.map((d) => {
+        if (currentMonth === 0 & +d.month===12) {
+          console.log(d.month)
+          d.month = 1;
+        }
         ypos = currentMonth === d.month ? ypos + 1 : 0;
         currentMonth = d.month;
 
         const markobj = {
           xpos: d.month - 1,
           ypos: ypos,
+          year: year,
           y: yScale(ypos),
           x: xScale(d.month - 1),
           monthLabel: months[d.month - 1],
@@ -126,6 +135,7 @@ export const activityMonitorSquares = () => {
         xpos: Math.floor(xValue(d) / gridY),
         ypos: xValue(d) % gridY,
         y: xScale(xValue(d) % gridY),
+        year: year,
         x: xScale(Math.floor(xValue(d) / gridY)),
         colorValue: d[colorValue],
         color: colorScale(d[colorValue]),
@@ -147,6 +157,9 @@ export const activityMonitorSquares = () => {
             .attr("fill", (d) => d.color)
             .attr("stroke", "#666666")
             .attr("stroke-width", minDimension / 200)
+            .on("click", (event, d) => {
+              console.log(d);
+            })
             .on("mouseover", function (event, d) {
               tooltip = d3.select("#tooltip");
               tooltip
@@ -181,13 +194,13 @@ export const activityMonitorSquares = () => {
           update
             .transition()
             .duration(500)
-            .delay((d,i)=>i*10)
+            .delay((d, i) => i * 10)
             .attr("d", (d) => roundedRect(d.x, d.y, 0, 0, radius))
             .call((update) => {
               update
                 .transition()
                 .duration(500)
-                .delay((d,i)=>i*10)
+                .delay((d, i) => i * 10)
                 .attr("fill", (d) => d.color)
                 .attr("d", (d) =>
                   roundedRect(d.x, d.y, minDimension, minDimension, radius)
@@ -380,6 +393,9 @@ export const activityMonitorSquares = () => {
   };
   my.colors = function (_) {
     return arguments.length ? ((colors = _), my) : colors;
+  };
+  my.year = function (_) {
+    return arguments.length ? ((year = _), my) : year;
   };
 
   return my;
