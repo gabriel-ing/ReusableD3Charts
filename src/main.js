@@ -9,12 +9,17 @@ import { stackedBarData, stackedSubGroups } from "./data/stackedBarData.js";
 import { irisData, irisColorLegend } from "./data/irisData.js";
 import { barChartData } from "./data/barChartData.js";
 import { lineChartData, lineChartSeriesInfo } from "./data/lineChartData.js";
-import { bubbleData, bubbleYSeries, bubbleColorPalette } from "./data/bubbleData.js";
+import {
+  bubbleData,
+  bubbleYSeries,
+  bubbleColorPalette,
+} from "./data/bubbleData.js";
 import { activityMonitorSquares } from "./charts/activityMonitorSquares.js";
 import moment from "moment";
 import { replotFunction } from "./utilities/replot.js";
 import { bubbleChart } from "./charts/bubbleChart-trc.js";
 window.saveChart = saveChart;
+
 const getWidthHeight = (chartId) => {
   const container = document.getElementById(chartId);
   return [container.offsetWidth, container.offsetHeight];
@@ -23,7 +28,12 @@ const appendSvg = (divID) => {
   const svg = d3
     .select("#" + divID)
     .append("svg")
-    .attr("id", divID + "-svg");
+    .attr("id", divID + "-svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    // .attr("viewBox", "0 0 600 400")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    // .style("display", "block");
   return svg;
 };
 
@@ -47,8 +57,8 @@ function main() {
 
   const widthHeight = getWidthHeight("scatter");
   const scatter = scatterPlot()
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .data(irisData)
     .xValue("petalLength")
     .yValue("sepalLength")
@@ -69,16 +79,16 @@ function main() {
     .height(50)
     .backgroundColor("#e3e3e3")
     .backgroundOpacity(0.8)
-    .x(440)
-    .y(200);
+    .x(0.75) // Position as a percentage (decimal) of total Width
+    .y(0.6); // Position as a percentage (decimal) of total Height
   chart1.call(chart1Legend);
 
   // ------------------  Section --------------------
   // Bar  chart data and calling
 
   const bar = barChart()
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .data(barChartData)
     .xValue("fruit")
     .yValue("quantity")
@@ -94,8 +104,8 @@ function main() {
   // Line chart data and calling
 
   const line = lineChart()
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .data(lineChartData)
     .xValue((d) => new Date(d.Date))
     .ySeries(lineChartSeriesInfo)
@@ -110,8 +120,8 @@ function main() {
   const lineLegend = legend()
     .width(90)
     .height(80)
-    .x(widthHeight[0] - 100)
-    .y(50)
+    .x(0.85)
+    .y(0.1)
     .ySeries(lineChartSeriesInfo)
     .backgroundColor("#e3e3e3")
     .backgroundOpacity(0.8);
@@ -124,8 +134,8 @@ function main() {
   const chart4 = appendSvg("stacked-bar");
   const stacked = stackedBarChart()
     .data(stackedBarData)
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .subGroups(stackedSubGroups)
     .margin(margin)
     .yLabel("Grades")
@@ -134,8 +144,8 @@ function main() {
 
   const stackedBarLegend = legend()
     .ySeries(stackedSubGroups)
-    .x(430)
-    .y(40)
+    .x(0.8)
+    .y(0.1)
     .width(100)
     .height(80)
     .pointType("rect")
@@ -149,8 +159,8 @@ function main() {
 
   const chart5 = appendSvg("bubble");
   const bubble = bubbleChart()
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .data(bubbleData)
     .bubbleValue("GDP")
     .labelValue("Country")
@@ -161,13 +171,12 @@ function main() {
   // .margin();
 
   const bubbleLegend = legend()
-    .x(10)
-    .y(widthHeight[1] - 100)
+    .x(0.1)
+    .y(0.1)
     .width(100)
     .height(100)
     .ySeries(bubbleYSeries)
     .legendTitle("Region");
-
 
   chart5.call(bubble);
   chart5.call(bubbleLegend);
@@ -184,10 +193,11 @@ function main() {
     });
   }
   const activity = activityMonitorSquares()
-    .width(widthHeight[0])
-    .height(widthHeight[1])
+    // .width(widthHeight[0])
+    // .height(widthHeight[1])
     .data(weeklyData)
     .xValue((d) => d.weekNumber)
+    .colorValue("activity")
     .tooltipValue((d) => {
       // console.log(d)
       let date =
@@ -195,8 +205,8 @@ function main() {
           ? moment(`2024W0${d.weekNumber}`).format("ll")
           : moment(`2024W${d.weekNumber}`).format("ll");
 
-      return `Week Beginning: ${date}`;
-    });
+      return `Week Beginning: ${date}<br> Activities : ${d["activity"]}`;
+    }).title("Number of Activities per week in 2024");
   chart6.call(activity);
 
   // ------------------  Section --------------------
@@ -218,6 +228,9 @@ function main() {
         break;
       case "bubble-svg":
         replotFunction(chartId, chart5, bubble);
+        break
+      case "activity-svg":
+        replotFunction(chartId, chart6, activity)
     }
   };
 }

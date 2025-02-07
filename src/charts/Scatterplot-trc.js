@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const scatterPlot = () => {
-  let width;
-  let height;
+  // let width;
+  // let height;
   let data;
   let yValue;
   let xValue;
@@ -35,9 +35,12 @@ export const scatterPlot = () => {
   let title;
 
   const my = (selection) => {
-    selection.attr("width", width).attr("height", height);
+    // selection.attr("width", width).attr("height", height);
 
-    // console.log(selection);
+    const width = selection.node().getBoundingClientRect().width;
+    const height = selection.node().getBoundingClientRect().height;
+    console.log(width, height);
+    selection.attr("viewBox", `0 0 ${width} ${height}`);
     const backgroundRect = selection
       .selectAll(".backgroundRect")
       .data([null])
@@ -245,13 +248,13 @@ export const scatterPlot = () => {
     // });
   };
 
-  my.width = function (_) {
-    return arguments.length ? ((width = +_), my) : width;
-  };
+  // my.width = function (_) {
+  //   return arguments.length ? ((width = +_), my) : width;
+  // };
 
-  my.height = function (_) {
-    return arguments.length ? ((height = +_), my) : width;
-  };
+  // my.height = function (_) {
+  //   return arguments.length ? ((height = +_), my) : width;
+  // };
   my.data = function (_) {
     return arguments.length ? ((data = _), my) : data;
   };

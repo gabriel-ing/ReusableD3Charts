@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const lineChart = () => {
-  let width;
-  let height;
+  // let width;
+  // let height;
   let data;
   let ySeries = [];
   let xValue;
@@ -36,8 +36,10 @@ export const lineChart = () => {
   let curveType;
 
   const my = (selection) => {
-    selection.attr("width", width).attr("height", height);
-
+    // selection.attr("width", width).attr("height", height);
+    const width = selection.node().getBoundingClientRect().width;
+    const height = selection.node().getBoundingClientRect().height;
+    selection.attr("viewBox", `0 0 ${width} ${height}`);
     //console.log(selection);
     const backgroundRect = selection
       .selectAll(".backgroundRect")
@@ -315,13 +317,13 @@ export const lineChart = () => {
     }
   };
 
-  my.width = function (_) {
-    return arguments.length ? ((width = +_), my) : width;
-  };
+  // my.width = function (_) {
+  //   return arguments.length ? ((width = +_), my) : width;
+  // };
 
-  my.height = function (_) {
-    return arguments.length ? ((height = +_), my) : width;
-  };
+  // my.height = function (_) {
+  //   return arguments.length ? ((height = +_), my) : width;
+  // };
   my.data = function (_) {
     return arguments.length ? ((data = _), my) : data;
   };

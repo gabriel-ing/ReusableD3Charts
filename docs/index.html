@@ -3,24 +3,44 @@
   <title>Reusable Plots Page</title>
   <style>
     .chart {
-      width: 600px;
-      height: 400px;
-      /* flex-grow: 4; */
+      width: 100%;
+      height: 100%;
+      flex-grow: 1;
+      display: flex;
+      max-height: calc(100% - 70px);
+      /* border: 0.5px solid grey */
     }
-    .chart-container {
+    /* .chart-container {
+
       border: 1px solid black;
       display: grid;
       grid-template-columns: 2;
       margin: 20px;
+      align-items: stretch;
       padding: 10px;
-      /* flex-grow: 4; */
+      flex-grow: 4;
+      flex-direction: column;
       border-radius: 10px;
       width: 600px;
-    }
+      height: 500px;
+    } */
+
+    .chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid black;
+  margin: 20px;
+  padding: 10px;
+  border-radius: 10px;
+  width: 600px;
+  height: 500px;
+  flex-grow:4;
+}
     .charts-container {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-evenly;;
+      justify-content: space-evenly;
       grid-template-columns: 2;
       margin-top: 150px;
     }
@@ -33,7 +53,7 @@
     }
     .titleLabel.axisLabel {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 15px;
+      font-size: 20px;
       font-weight: 400;
     }
     .ticks {
@@ -52,53 +72,88 @@
       font-size: 50px;
     }
     #header {
-      background-color:#c2bedf;
+      background-color: #c2bedf;
       width: 100%;
       /* height: 130px; */
 
-      border-bottom: 1px solid black ;
+      border-bottom: 1px solid black;
       left: 0px;
       top: 0px;
-      padding:10px;
-      position:fixed;
-      
+      padding: 10px;
+      position: fixed;
     }
-    h1{
+    h1 {
       line-height: 13px;
+    }
+    button {
+      height: 30px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+    }
+    .button-container {
+      display: flex;
+      flex-direction: column; /* Stack buttons */
+      gap: 5px; /* Add spacing between buttons */
+      height: 70px;
+      padding-bottom:0px;
+      margin-bottom:0px;
     }
   </style>
 </head>
 <body>
-  <div id="header" class="header"><h1>Reusable plots</h1><p>These are plots created with D3.js which are designed to be as Reusable as possible. As such, the inputs into the plots are separated from the plotting logic. The plots can also be replotted with different data, with some basic transition animations. There is also a specified function to download a static SVG image of the plot, which can be used in other programs including as raw images in a PowerPoint or Word document, or as an editable SVG in Illustrator or other graphic design programs.  </p></div>
+  <div id="header" class="header">
+    <h1>Reusable plots</h1>
+    <p>
+      These are plots created with D3.js which are designed to be as Reusable as
+      possible. As such, the inputs into the plots are separated from the
+      plotting logic. The plots can also be replotted with different data, with
+      some basic transition animations. There is also a specified function to
+      download a static SVG image of the plot, which can be used in other
+      programs including as raw images in a PowerPoint or Word document, or as
+      an editable SVG in Illustrator or other graphic design programs.
+    </p>
+  </div>
   <div class="charts-container">
     <div class="chart-container">
-      <button onclick="saveChart('scatter-svg')">Download Chart</button>
-      <button onclick="replot('scatter-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('scatter-svg')">Download Chart</button>
+        <button onclick="replot('scatter-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="scatter"></div>
     </div>
     <div class="chart-container">
-      <button onclick="saveChart('bar-svg')">Download Chart</button>
-      <button onclick="replot('bar-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('bar-svg')">Download Chart</button>
+        <button onclick="replot('bar-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="bar"></div>
     </div>
     <div class="chart-container">
-      <button onclick="saveChart('line-svg')">Download Chart</button>
-      <button onclick="replot('line-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('line-svg')">Download Chart</button>
+        <button onclick="replot('line-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="line"></div>
     </div>
     <div class="chart-container">
-      <button onclick="saveChart('stacked-bar-svg')">Download Chart</button>
-      <button onclick="replot('stacked-bar-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('stacked-bar-svg')">Download Chart</button>
+        <button onclick="replot('stacked-bar-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="stacked-bar"></div>
     </div>
     <div class="chart-container">
-      <button onclick="saveChart('bubble-svg')">Download Chart</button>
-      <button onclick="replot('bubble-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('bubble-svg')">Download Chart</button>
+        <button onclick="replot('bubble-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="bubble"></div>
     </div>
     <div class="chart-container">
-      <button onclick="saveChart('activity-svg')">Download Chart</button>
-      <button onclick="replot('activity-svg')">Replot Chart</button>
+      <div class="button-container">
+        <button onclick="saveChart('activity-svg')">Download Chart</button>
+        <button onclick="replot('activity-svg')">Replot Chart</button>
+      </div>
       <div class="chart" id="activity"></div>
     </div>
   </div>

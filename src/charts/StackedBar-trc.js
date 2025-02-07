@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import { checkForTooltip } from "../utilities/checkForTooltip";
 
 export const stackedBarChart = () => {
-  let width;
-  let height;
+  // let width;
+  // let height;
   let data;
   let subGroups;
   let groups;
@@ -16,9 +16,11 @@ export const stackedBarChart = () => {
   let tooltipValue = (d, key) => ` ${key} : ${d.data[key]}`;
 
   const my = (selection) => {
-    selection.attr("width", width).attr("height", height);
+    // selection.attr("width", width).attr("height", height);
+    const width = selection.node().getBoundingClientRect().width;
+    const height = selection.node().getBoundingClientRect().height;
     // selection.append("rect").attr("width", 100).attr("height", 100);
-
+    selection.attr("viewBox", `0 0 ${width} ${height}`);
     const subs = subGroups.map((d) => d.subgroup);
     const sums = data.map((d) =>
       subs.reduce((sum, key) => sum + Number(d[key]), 0)
@@ -93,6 +95,8 @@ export const stackedBarChart = () => {
             update
               .transition()
               .duration(1000)
+              .attr("width", xScale.bandwidth())
+              .attr("x", (d) => xScale(d.data.group))
               .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
               .attr("y", (d) => yScale(d[1]))
           )
@@ -142,13 +146,13 @@ export const stackedBarChart = () => {
     }
   };
 
-  my.width = function (_) {
-    return arguments.length ? ((width = +_), my) : width;
-  };
+  // my.width = function (_) {
+  //   return arguments.length ? ((width = +_), my) : width;
+  // };
 
-  my.height = function (_) {
-    return arguments.length ? ((height = +_), my) : width;
-  };
+  // my.height = function (_) {
+  //   return arguments.length ? ((height = +_), my) : width;
+  // };
 
   my.data = function (_) {
     return arguments.length ? ((data = _), my) : data;

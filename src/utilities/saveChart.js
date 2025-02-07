@@ -55,7 +55,16 @@ function getAllStyles(elem) {
 
 function getRequiredStyles(elem) {
   if (!elem) return []; // Element does not exist, empty list.
-  const requiredStyles = ["font-family", "font-weight", "font-size"];
+  const requiredStyles = [
+    "font-family",
+    "font-weight",
+    "font-size",
+    "transform-origin",
+    "dy",
+    "text-align",
+    "dominant-baseline",
+    "text-anchor",
+  ]; // If the text styling is wrong, its possible a required styling is missing from here! Add it in.
   // console.log(elem);
   var win = document.defaultView || window,
     style,
@@ -95,21 +104,19 @@ const addStyles = (chart) => {
 // If these values are set within the d3 (i.e. directly onto the SVG), this is unnecessary
 // But it ensures that text styling using CSS is retained. */
 
+  const textElements = chart.getElementsByTagName("text");
+  // console.log(textElements);
 
-const textElements = chart.getElementsByTagName("text");
-// console.log(textElements);
-  
-const mainStyles = getRequiredStyles(chart);
-// console.log(mainStyles);
-chart.style.cssText = mainStyles.join(";");
-  Array.from(textElements).forEach(function(element) {
-
+  const mainStyles = getRequiredStyles(chart);
+  // console.log(mainStyles);
+  chart.style.cssText = mainStyles.join(";");
+  Array.from(textElements).forEach(function (element) {
     // console.log(element);
     // console.log(element)
     const styles = getRequiredStyles(element);
     // console.log(styles)
     element.style.cssText = styles.join(";");
-  })
+  });
   return chart;
 };
 

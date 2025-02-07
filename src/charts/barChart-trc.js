@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 
 export const barChart = () => {
-  let width;
-  let height;
+  // let width;
+  // let height;
   let data;
   let yValue;
   let xValue;
@@ -20,8 +20,10 @@ export const barChart = () => {
   let title;
 
   const my = (selection) => {
-    selection.attr("width", width).attr("height", height);
-
+    // selection.attr("width", width).attr("height", height);
+    const width = selection.node().getBoundingClientRect().width;
+    const height = selection.node().getBoundingClientRect().height;
+    selection.attr("viewBox", `0 0 ${width} ${height}`);
     //console.log(data);
     let filteredData = data;
     let axisHeight = height - margin.top - margin.bottom;
@@ -96,6 +98,8 @@ export const barChart = () => {
             update
               .transition(t)
               .delay((d, i) => i * 8)
+              .attr("x", (d) => d.x)
+              .attr("width", x.bandwidth())
               .attr("height", (d) => d.height)
               .attr("y", (d) => height - d.height - margin.bottom)
               .attr("fill", color)
@@ -155,13 +159,13 @@ export const barChart = () => {
     }
   };
 
-  my.width = function (_) {
-    return arguments.length ? ((width = +_), my) : width;
-  };
+  // my.width = function (_) {
+  //   return arguments.length ? ((width = +_), my) : width;
+  // };
 
-  my.height = function (_) {
-    return arguments.length ? ((height = +_), my) : width;
-  };
+  // my.height = function (_) {
+  //   return arguments.length ? ((height = +_), my) : width;
+  // };
   my.data = function (_) {
     return arguments.length ? ((data = _), my) : data;
   };

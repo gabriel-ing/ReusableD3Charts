@@ -3,12 +3,13 @@ import { checkForTooltip } from "../utilities/checkForTooltip";
 import { wrap } from "../utilities/wrapText";
 
 export const bubbleChart = () => {
-  let width;
-  let height;
+  // let width;
+  // let height;
   let data;
   let title;
   let margin = { top: 40, right: 5, bottom: 5, left: 5 };
   let yLabel;
+  
   let xLabel;
   let clustered = true;
   let colorValue;
@@ -27,23 +28,28 @@ export const bubbleChart = () => {
   let tooltipValue = (d, key) => ` ${key} : ${d.data[key]}`;
   let labelValue;
   let sorted = true;
-  let padding = 5;
+  let padding = 20;
   let maxRadius = 90;
 
   const my = (selection) => {
-    selection.attr("width", width).attr("height", height);
+    // selection.attr("width", width).attr("height", height);
+    const width = selection.node().getBoundingClientRect().width;
+    const height = selection.node().getBoundingClientRect().height;
+    selection.attr("viewBox", `0 0 ${width} ${height}`);
+    // console.log(width, height)
     // selection.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`)
     let colorScale;
     if (colorPalette) {
       colorScale = colorPalette;
-      console.log(colorPalette);
+      // console.log(colorPalette);
     } else {
       colorScale = d3
         .scaleOrdinal()
         .domain(data.map((d) => d[colorValue]))
         .range(colorList);
     }
-
+    
+   
     if (clustered) {
       const pack = d3
         .pack()
@@ -51,11 +57,11 @@ export const bubbleChart = () => {
           width - margin.left - margin.right,
           height - margin.top - margin.bottom,
         ])
-        .padding(10);
+        .padding(padding);
       const root = pack(
         d3.hierarchy({ children: data }).sum((d) => d[bubbleValue])
       );
-      console.log(root.leaves());
+      // console.log(root.leaves());
       const bubbles = selection
         .selectAll(".bubbles")
         .data(root.leaves())
@@ -132,7 +138,7 @@ export const bubbleChart = () => {
       if (sorted) {
         data.sort((a, b) => b[bubbleValue] - a[bubbleValue]);
       }
-      console.log(data);
+      // console.log(data);
 
       const bubbleScale = d3
         .scaleSqrt()
@@ -158,7 +164,7 @@ export const bubbleChart = () => {
         .data(marks)
         .join(
           (enter) => {
-            console.log(enter);
+            // console.log(enter);
             enter
               .append("circle")
               .attr("class", "bubbles")
@@ -235,13 +241,13 @@ export const bubbleChart = () => {
     }
   };
 
-  my.width = function (_) {
-    return arguments.length ? ((width = +_), my) : width;
-  };
+  // my.width = function (_) {
+  //   return arguments.length ? ((width = +_), my) : width;
+  // };
 
-  my.height = function (_) {
-    return arguments.length ? ((height = +_), my) : width;
-  };
+  // my.height = function (_) {
+  //   return arguments.length ? ((height = +_), my) : width;
+  // };
 
   my.data = function (_) {
     return arguments.length ? ((data = _), my) : data;

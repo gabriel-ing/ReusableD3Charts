@@ -5845,6 +5845,20 @@
 
   var ramp = scheme => rgbBasis(scheme[scheme.length - 1]);
 
+  var scheme$1 = new Array(3).concat(
+    "fc8d59ffffbf91cf60",
+    "d7191cfdae61a6d96a1a9641",
+    "d7191cfdae61ffffbfa6d96a1a9641",
+    "d73027fc8d59fee08bd9ef8b91cf601a9850",
+    "d73027fc8d59fee08bffffbfd9ef8b91cf601a9850",
+    "d73027f46d43fdae61fee08bd9ef8ba6d96a66bd631a9850",
+    "d73027f46d43fdae61fee08bffffbfd9ef8ba6d96a66bd631a9850",
+    "a50026d73027f46d43fdae61fee08bd9ef8ba6d96a66bd631a9850006837",
+    "a50026d73027f46d43fdae61fee08bffffbfd9ef8ba6d96a66bd631a9850006837"
+  ).map(colors);
+
+  var RdYlGn = ramp(scheme$1);
+
   var scheme = new Array(3).concat(
     "e5f5e0a1d99b31a354",
     "edf8e9bae4b374c476238b45",
@@ -6121,8 +6135,8 @@
   }
 
   const scatterPlot = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
     let yValue;
     let xValue;
@@ -6154,9 +6168,12 @@
     let title;
 
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
+      // selection.attr("width", width).attr("height", height);
 
-      // console.log(selection);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      console.log(width, height);
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
       selection
         .selectAll(".backgroundRect")
         .data([null])
@@ -6358,13 +6375,13 @@
       // });
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
 
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
     };
@@ -6424,8 +6441,8 @@
   };
 
   const barChart = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
     let yValue;
     let xValue;
@@ -6443,8 +6460,10 @@
     let title;
 
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
-
+      // selection.attr("width", width).attr("height", height);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
       //console.log(data);
       let filteredData = data;
       let axisHeight = height - margin.top - margin.bottom;
@@ -6517,6 +6536,8 @@
               update
                 .transition(t)
                 .delay((d, i) => i * 8)
+                .attr("x", (d) => d.x)
+                .attr("width", x.bandwidth())
                 .attr("height", (d) => d.height)
                 .attr("y", (d) => height - d.height - margin.bottom)
                 .attr("fill", color)
@@ -6576,13 +6597,13 @@
       }
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
 
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
     };
@@ -6652,7 +6673,16 @@
 
   function getRequiredStyles(elem) {
     if (!elem) return []; // Element does not exist, empty list.
-    const requiredStyles = ["font-family", "font-weight", "font-size"];
+    const requiredStyles = [
+      "font-family",
+      "font-weight",
+      "font-size",
+      "transform-origin",
+      "dy",
+      "text-align",
+      "dominant-baseline",
+      "text-anchor",
+    ]; // If the text styling is wrong, its possible a required styling is missing from here! Add it in.
     // console.log(elem);
     var win = document.defaultView || window,
       style,
@@ -6692,15 +6722,13 @@
   // If these values are set within the d3 (i.e. directly onto the SVG), this is unnecessary
   // But it ensures that text styling using CSS is retained. */
 
+    const textElements = chart.getElementsByTagName("text");
+    // console.log(textElements);
 
-  const textElements = chart.getElementsByTagName("text");
-  // console.log(textElements);
-    
-  const mainStyles = getRequiredStyles(chart);
-  // console.log(mainStyles);
-  chart.style.cssText = mainStyles.join(";");
-    Array.from(textElements).forEach(function(element) {
-
+    const mainStyles = getRequiredStyles(chart);
+    // console.log(mainStyles);
+    chart.style.cssText = mainStyles.join(";");
+    Array.from(textElements).forEach(function (element) {
       // console.log(element);
       // console.log(element)
       const styles = getRequiredStyles(element);
@@ -6731,8 +6759,8 @@
   };
 
   const lineChart = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
     let ySeries = [];
     let xValue;
@@ -6763,8 +6791,10 @@
     let curveType;
 
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
-
+      // selection.attr("width", width).attr("height", height);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
       //console.log(selection);
       selection
         .selectAll(".backgroundRect")
@@ -7034,13 +7064,13 @@
       }
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
 
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
     };
@@ -7116,6 +7146,12 @@
       //console.log(selection);
 
       // const selection = d3.select("chart").append(svg)
+
+      const svgWidth = selection.node().getBoundingClientRect().width;
+      const svgHeight = selection.node().getBoundingClientRect().height;
+      const legendX = x*svgWidth;
+      const legendY = y*svgHeight;
+  // console.log(legendX, legendY)
       const legend = selection
         .selectAll(".legend")
         .data([null])
@@ -7124,19 +7160,19 @@
             enter
               .append("g")
               .attr("class", "legend")
-              .attr("transform", `translate(0, ${y})`)
+              .attr("transform", `translate(0, ${legendY})`)
               .call((enter) =>
                 enter
                   .transition()
                   .duration(1000)
-                  .attr("transform", `translate(${x}, ${y})`)
+                  .attr("transform", `translate(${legendX}, ${legendY})`)
               ),
           (update) =>
             update.call((update) =>
               update
                 .transition()
                 .duration(1000)
-                .attr("transform", `translate(${x}, ${y})`)
+                .attr("transform", `translate(${legendX}, ${legendY})`)
             )
         );
 
@@ -7177,7 +7213,7 @@
         return (i + 1) * (height / (ySeries.length + 1));
       };
       if (pointType === "circle") {
-        console.log("here");
+        // console.log("here")
         legendPoints
           .selectAll(".legendPoints")
           .data(ySeries)
@@ -7253,8 +7289,8 @@
   };
 
   const stackedBarChart = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
     let subGroups;
     let groups;
@@ -7266,9 +7302,11 @@
     let tooltipValue = (d, key) => ` ${key} : ${d.data[key]}`;
 
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
+      // selection.attr("width", width).attr("height", height);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
       // selection.append("rect").attr("width", 100).attr("height", 100);
-
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
       const subs = subGroups.map((d) => d.subgroup);
       const sums = data.map((d) =>
         subs.reduce((sum, key) => sum + Number(d[key]), 0)
@@ -7340,6 +7378,8 @@
               update
                 .transition()
                 .duration(1000)
+                .attr("width", xScale.bandwidth())
+                .attr("x", (d) => xScale(d.data.group))
                 .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
                 .attr("y", (d) => yScale(d[1]))
             )
@@ -7389,13 +7429,13 @@
       }
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
 
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
 
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
@@ -14559,8 +14599,7 @@
   })));
   });
 
-  //function to return the path element for a rectangle with rounded corners centered at position
-  function roundedRect(x, y, width, height, radius, centered = false) {
+  function roundedRect(x, y, width, height, radius, centered = true) {
     const initialX = centered ? x - width / 2 : x;
     const initialY = centered ? y - height / 2 : y;
     return (
@@ -14613,41 +14652,74 @@
   }
 
   const activityMonitorSquares = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
-    let xValue;
     let radius = 8;
     let gridX;
+    let xValue;
     let gridY;
+    let title;
+    let months;
     const scale = 1.1;
-    let margin = { top: 100, right: 50, bottom: 50, left: 50 };
+    let margin = { top: 150, right: 50, bottom: 50, left: 50 };
     let tooltipValue = (d) => null;
     let timePeriod = "week";
     let year;
+    let colorBar = true;
+    let colors = [Greens(0), Greens(1)];
+    let colorValue;
+    let colorRange = () => [0, max(data, (d) => d[colorValue])];
+    let cbarLabel = "Activities Per Week";
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
+      // selection.attr("width", width).attr("height", height);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
 
       let tooltip = checkForTooltip();
       year = 2024;
 
-      // console.log(data);
       if (!gridX & !gridY) {
         switch (timePeriod) {
           case "week":
             if (year) {
-              console.log(
-                range(53).map((d) => {
-                  let date =
-                    d + 1 < 10
-                      ? moment(`${year}W0${d + 1}`).format("ll")
-                      : moment(`${year}W${d + 1}`).format("ll");
-                  return date;
-                })
-              );
+              // const months =
+              //   data.map(d=> {
+              //     let date =
+              //       d.weekNumber + 1 < 10
+              //         ? moment(`${year}W0${d.weekNumber + 1}`).format("M")
+              //         : moment(`${year}W${d.weekNumber + 1}`).format("M");
+              //     return +date;
+              //   })
+
+              data.map((d) => {
+                d.month =
+                  d.weekNumber < 10
+                    ? +moment(`${year}W0${d.weekNumber}`).format("M")
+                    : +moment(`${year}W${d.weekNumber}`).format("M");
+              });
+
+              months = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ];
+              gridX = 12;
+              gridY = 5;
+            } else {
+              gridX = 13;
+              gridY = 4;
             }
-            gridX = 13;
-            gridY = 4;
 
             break;
           case "day":
@@ -14662,74 +14734,266 @@
       const xScale = band()
         .domain(range(gridX))
         .range([margin.left, width - margin.right])
-        .padding(0.2);
-      // const yScale = d3
-      //   .scaleBand()
-      //   .domain(d3.range(gridY))
-      //   .range([margin.top, height - margin.bottom])
-      //   .padding(0.2);
-      const colorValue = (d) => d.activity;
+        .padding(0.1);
+      const yScale = band()
+        .domain(range(gridY))
+        .range([margin.top, height - margin.bottom])
+        .padding(0.1);
 
-      const colorScale = linear()
-        .domain(extent(data, colorValue))
-        .range([Greens(0), Greens(1)]);
+      const colorScale = linear().domain(colorRange()).range(colors);
 
-      // console.log(d3.extent(data, colorValue));
-      const minDimension = xScale.bandwidth();
+      const minDimension = min([xScale.bandwidth(), yScale.bandwidth()]);
+      let marks;
+      if (months) {
+        let ypos = 0;
+        let currentMonth = 0;
 
-      const marks = data.map((d) => ({
-        xpos: Math.floor(xValue(d) / gridY),
-        ypos: xValue(d) % gridY,
-        y: xScale(xValue(d) % gridY),
-        x: xScale(Math.floor(xValue(d) / gridY)),
-        colorValue: colorValue(d),
-        color: colorScale(colorValue(d)),
-        weekNumber: d.weekNumber,
-        tooltip: tooltipValue(d),
-        data: d,
-      }));
+        marks = data.map((d) => {
+          ypos = currentMonth === d.month ? ypos + 1 : 0;
+          currentMonth = d.month;
 
-      // console.log(xScale(6));
-      // console.log(marks);
+          const markobj = {
+            xpos: d.month - 1,
+            ypos: ypos,
+            y: yScale(ypos),
+            x: xScale(d.month - 1),
+            monthLabel: months[d.month - 1],
+            colorValue: d[colorValue],
+            color: colorScale(d[colorValue]),
+            weekNumber: d.weekNumber,
+            tooltip: tooltipValue(d),
+            data: d,
+          };
+
+          return markobj;
+        });
+      } else {
+        marks = data.map((d) => ({
+          xpos: Math.floor(xValue(d) / gridY),
+          ypos: xValue(d) % gridY,
+          y: xScale(xValue(d) % gridY),
+          x: xScale(Math.floor(xValue(d) / gridY)),
+          colorValue: d[colorValue],
+          color: colorScale(d[colorValue]),
+          weekNumber: d.weekNumber,
+          tooltip: tooltipValue(d),
+          data: d,
+        }));
+      }
+
       selection
         .selectAll(".activitySquare")
         .data(marks)
-        .join("path")
-        .attr("d", (d) =>
-          roundedRect(d.x, d.y, minDimension, minDimension, radius)
-        )
-        .attr("fill", (d) => d.color)
-        .attr("stroke", "#666666")
-        .attr("stroke-width", minDimension / 200)
-        .on("click", (event, d) => {
-          console.log(d);
-        })
-        .on("mouseover", function (event, d) {
-          tooltip = select("#tooltip");
-          tooltip
-            .html(d.tooltip)
-            .style("left", `${event.pageX + 5}px`)
-            .style("top", `${event.pageY - 28}px`);
-          tooltip.transition().duration(200).style("opacity", 0.9);
+        .join(
+          (enter) =>
+            enter
+              .append("path")
+              .attr("class", "activitySquare")
+              .attr("d", (d) => roundedRect(d.x, d.y, 0, 0, radius))
+              .attr("fill", (d) => d.color)
+              .attr("stroke", "#666666")
+              .attr("stroke-width", minDimension / 200)
+              .on("mouseover", function (event, d) {
+                tooltip = select("#tooltip");
+                tooltip
+                  .html(d.tooltip)
+                  .style("left", `${event.pageX + 5}px`)
+                  .style("top", `${event.pageY - 28}px`);
+                tooltip.transition().duration(200).style("opacity", 0.9);
 
-          select(this).attr(
-            "transform",
-            `scale(${scale}) translate(${d.x - d.x * scale}, ${
-            d.y - d.y * scale
-          })`
+                select(this).attr(
+                  "transform",
+                  `scale(${scale}) translate(${d.x - d.x * scale}, ${
+                  d.y - d.y * scale
+                })`
+                );
+              })
+              .on("mouseout", function (event, d) {
+                select(this).attr(
+                  "transform",
+                  `scale(${1}) translate(${0}, ${0})`
+                );
+                tooltip.style("opacity", 0);
+              })
+              .call((enter) =>
+                enter
+                  .transition()
+                  .duration(1000)
+                  .attr("d", (d) =>
+                    roundedRect(d.x, d.y, minDimension, minDimension, radius)
+                  )
+              ),
+          (update) => {
+            update
+              .transition()
+              .duration(500)
+              .delay((d,i)=>i*10)
+              .attr("d", (d) => roundedRect(d.x, d.y, 0, 0, radius))
+              .call((update) => {
+                update
+                  .transition()
+                  .duration(500)
+                  .delay((d,i)=>i*10)
+                  .attr("fill", (d) => d.color)
+                  .attr("d", (d) =>
+                    roundedRect(d.x, d.y, minDimension, minDimension, radius)
+                  );
+              });
+          }
+        );
+
+      if (months) {
+        const monthLabelGroup = selection
+          .selectAll(".monthLabels")
+          .data([null])
+          .join("g")
+          .classed("monthLabels", true);
+        monthLabelGroup
+          .selectAll(".monthLabel")
+          .data(marks.filter((d) => d.ypos === 0))
+          .join("text")
+          .attr("x", (d) => d.x - 0.2 * minDimension)
+          .attr("y", (d) => d.y - minDimension * 0.8)
+          .attr("text-anchor", "left")
+          .attr("class", "monthLabel axisLabel")
+          .attr(
+            "transform-origin",
+            (d) => `${d.x}px ${d.y - minDimension * 0.7}px`
+          )
+          .attr("transform", `rotate(-45)`)
+          .text((d) => d.monthLabel);
+      }
+      if (title) {
+        selection
+          .selectAll(".titleLabel")
+          .data([null])
+          .join("text")
+          .attr("class", "axisLabel titleLabel")
+          .attr("x", width / 2)
+          .attr("y", margin.top / 3)
+          .attr("text-anchor", "middle")
+          .text(title);
+      }
+      if (colorBar) {
+        const grads = selection
+          .selectAll("defs")
+          .data([null])
+          .join("defs")
+          .data([null])
+          .selectAll("linearGradient")
+          .data([null])
+          .join("linearGradient")
+          .attr("id", "colorGrad")
+          .attr("x1", "0%")
+          .attr("x2", "100%")
+          .attr("y1", "0%")
+          .attr("y2", "0%");
+
+        grads
+          .selectAll("stop")
+          .data(colors)
+          .join("stop")
+          .style("stop-color", (d) => d)
+          .attr("offset", (d, i) => `${100 * (i / (colors.length - 1))}%`);
+
+        const cbar = selection
+          .selectAll(".color-bar")
+          .data([null])
+          .join("g")
+          .attr("class", "color-bar");
+
+        cbar
+          .selectAll(".color-bar-rect")
+          .data([null])
+          .join(
+            (enter) => {
+              enter
+                .append("rect")
+                .attr("class", "color-bar-rect")
+                .attr(
+                  "width",
+                  width - margin.left - margin.right - 2.5 * minDimension
+                )
+                .attr("height", minDimension / 2)
+                .attr("y", height - margin.bottom + 2)
+                .attr("x", margin.left + minDimension / 2)
+                .attr("stroke", "#111111")
+                .attr("stroke-width", minDimension / 200)
+                .attr("fill", "url(#colorGrad)");
+            },
+            (update) => {
+              update
+                .transition()
+                .duration(1000)
+                .call((update) => {
+                  update
+                    .attr(
+                      "width",
+                      width - margin.left - margin.right - 2.5 * minDimension
+                    )
+                    .attr("height", minDimension / 2)
+                    .attr("y", height - margin.bottom + 2)
+                    .attr("x", margin.left + minDimension / 2)
+                    .attr("stroke", "#111111")
+                    .attr("stroke-width", minDimension / 200)
+                    .attr("fill", "url(#colorGrad)");
+                });
+            }
           );
-        })
-        .on("mouseout", function (event, d) {
-          select(this).attr("transform", `scale(${1}) translate(${0}, ${0})`);
-        });
+
+        // const cbarTextMarks = colorRange().map((d)=> ({
+        //   value: d,
+        //   x:
+        // }))
+        cbar
+          .selectAll(".color-bar-number-label")
+          .data(colorRange())
+          .join("text")
+          .attr("class", "color-bar-number-label axisLabel")
+          .attr("text-anchor", (d) => {
+            if (d === 0) {
+              return "right";
+            } else {
+              return "left";
+            }
+          })
+          .attr("dominant-baseline", "middle")
+          .attr("text-align", "middle")
+          .attr("dy", "0.1em")
+          .attr("x", (d, i) => {
+            return (
+              margin.left +
+              (width - margin.right - margin.left - 1.5 * minDimension) *
+                (i / (colorRange().length - 1))
+            );
+          })
+          .attr("y", height - margin.bottom + 2 + minDimension / 4)
+          .text((d) => d);
+        cbar
+          .selectAll(".cbar-label")
+          .data([null])
+          .join("text")
+          .attr("class", "cbar-label axisLabel")
+          .attr("text-anchor", "middle")
+          .attr("x", (width - margin.left - margin.right) / 2)
+          .attr("y", height - margin.bottom + 2 + minDimension)
+          .text(cbarLabel);
+      } else {
+        selection
+          .selectAll(".color-bar")
+          .transition()
+          .duration(1000)
+          .style("opacity", 0)
+          .remove();
+      }
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
     };
@@ -14744,6 +15008,24 @@
     };
     my.tooltipValue = function (_) {
       return arguments.length ? ((tooltipValue = _), my) : tooltipValue;
+    };
+    my.title = function (_) {
+      return arguments.length ? ((title = _), my) : title;
+    };
+    my.colorValue = function (_) {
+      return arguments.length ? ((colorValue = _), my) : colorValue;
+    };
+    my.cbarLabel = function (_) {
+      return arguments.length ? ((cbarLabel = _), my) : cbarLabel;
+    };
+    my.colorBar = function (_) {
+      return arguments.length ? ((colorBar = _), my) : colorBar;
+    };
+    my.colorRange = function (_) {
+      return arguments.length ? ((colorRange = _), my) : colorRange;
+    };
+    my.colors = function (_) {
+      return arguments.length ? ((colors = _), my) : colors;
     };
 
     return my;
@@ -14810,19 +15092,19 @@
       case "stacked-bar-svg":
         if (plotObj.subGroups() == stackedSubGroups) {
           plotObj.subGroups(stackedSubGroupsAlt);
-          legend.ySeries(stackedSubGroupsAlt).x(70);
+          legend.ySeries(stackedSubGroupsAlt).x(0.1);
           svg.call(plotObj);
           svg.call(legend);
         } else {
           plotObj.subGroups(stackedSubGroups);
-          legend.ySeries(stackedSubGroups).x(430);
+          legend.ySeries(stackedSubGroups).x(0.8);
           svg.call(plotObj);
           svg.call(legend);
         }
         break;
       case "bubble-svg":
-        console.log(plotObj);
-        console.log(plotObj.clustered());
+        // console.log(plotObj);
+        // console.log(plotObj.clustered());
         if (plotObj.clustered()) {
           plotObj
             .clustered(false)
@@ -14832,6 +15114,27 @@
         } else {
           console.log("here");
           plotObj.clustered(true).data(bubbleData).title("GDP of Countries");
+          svg.call(plotObj);
+        }
+        break;
+      case "activity-svg":
+        console.log(plotObj.colors());
+        if (
+          plotObj.title() === "Number of Activities per week in 2024"
+        ) {
+          console.log(true);
+          plotObj
+            .colorRange(() => [0, 5, 10])
+            .colors([RdYlGn(0), RdYlGn(0.5), RdYlGn(1)])
+            .title("Number of activities per week, colored by proximity to target (5 p/w)");
+          svg.call(plotObj);
+        } else {
+          console.log(false);
+          plotObj
+            .colorRange(()=> [0, max(plotObj.data(), (d)=>d[plotObj.colorValue()])])
+            .colors([Greens(0), Greens(1)])
+            .title("Number of Activities per week in 2024");
+
           svg.call(plotObj);
         }
     }
@@ -14877,12 +15180,13 @@
   }
 
   const bubbleChart = () => {
-    let width;
-    let height;
+    // let width;
+    // let height;
     let data;
     let title;
     let margin = { top: 40, right: 5, bottom: 5, left: 5 };
     let yLabel;
+    
     let xLabel;
     let clustered = true;
     let colorValue;
@@ -14899,33 +15203,38 @@
     ];
     let bubbleValue;
     let labelValue;
-    let padding = 5;
+    let padding = 20;
     let maxRadius = 90;
 
     const my = (selection) => {
-      selection.attr("width", width).attr("height", height);
+      // selection.attr("width", width).attr("height", height);
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
+      // console.log(width, height)
       // selection.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`)
       let colorScale;
       if (colorPalette) {
         colorScale = colorPalette;
-        console.log(colorPalette);
+        // console.log(colorPalette);
       } else {
         colorScale = ordinal()
           .domain(data.map((d) => d[colorValue]))
           .range(colorList);
       }
-
+      
+     
       if (clustered) {
         const pack = index()
           .size([
             width - margin.left - margin.right,
             height - margin.top - margin.bottom,
           ])
-          .padding(10);
+          .padding(padding);
         const root = pack(
           hierarchy({ children: data }).sum((d) => d[bubbleValue])
         );
-        console.log(root.leaves());
+        // console.log(root.leaves());
         selection
           .selectAll(".bubbles")
           .data(root.leaves())
@@ -15002,7 +15311,7 @@
         {
           data.sort((a, b) => b[bubbleValue] - a[bubbleValue]);
         }
-        console.log(data);
+        // console.log(data);
 
         const bubbleScale = sqrt()
           .domain([0, max(data, (d) => d[bubbleValue])])
@@ -15027,7 +15336,7 @@
           .data(marks)
           .join(
             (enter) => {
-              console.log(enter);
+              // console.log(enter);
               enter
                 .append("circle")
                 .attr("class", "bubbles")
@@ -15104,13 +15413,13 @@
       }
     };
 
-    my.width = function (_) {
-      return arguments.length ? ((width = +_), my) : width;
-    };
+    // my.width = function (_) {
+    //   return arguments.length ? ((width = +_), my) : width;
+    // };
 
-    my.height = function (_) {
-      return arguments.length ? ((height = +_), my) : width;
-    };
+    // my.height = function (_) {
+    //   return arguments.length ? ((height = +_), my) : width;
+    // };
 
     my.data = function (_) {
       return arguments.length ? ((data = _), my) : data;
@@ -15153,6 +15462,7 @@
   };
 
   window.saveChart = saveChart;
+
   const getWidthHeight = (chartId) => {
     const container = document.getElementById(chartId);
     return [container.offsetWidth, container.offsetHeight];
@@ -15160,7 +15470,12 @@
   const appendSvg = (divID) => {
     const svg = select("#" + divID)
       .append("svg")
-      .attr("id", divID + "-svg");
+      .attr("id", divID + "-svg")
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      // .attr("viewBox", "0 0 600 400")
+      .attr("width", "100%")
+      .attr("height", "100%");
+      // .style("display", "block");
     return svg;
   };
 
@@ -15182,10 +15497,10 @@
   Petal Length : ${d.petalLength} <br>
   Variety: ${d.species}</p>`;
 
-    const widthHeight = getWidthHeight("scatter");
+    getWidthHeight("scatter");
     const scatter = scatterPlot()
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .data(irisData)
       .xValue("petalLength")
       .yValue("sepalLength")
@@ -15206,16 +15521,16 @@
       .height(50)
       .backgroundColor("#e3e3e3")
       .backgroundOpacity(0.8)
-      .x(440)
-      .y(200);
+      .x(0.75) // Position as a percentage (decimal) of total Width
+      .y(0.6); // Position as a percentage (decimal) of total Height
     chart1.call(chart1Legend);
 
     // ------------------  Section --------------------
     // Bar  chart data and calling
 
     const bar = barChart()
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .data(barChartData)
       .xValue("fruit")
       .yValue("quantity")
@@ -15231,8 +15546,8 @@
     // Line chart data and calling
 
     const line = lineChart()
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .data(lineChartData)
       .xValue((d) => new Date(d.Date))
       .ySeries(lineChartSeriesInfo)
@@ -15247,8 +15562,8 @@
     const lineLegend = legend()
       .width(90)
       .height(80)
-      .x(widthHeight[0] - 100)
-      .y(50)
+      .x(0.85)
+      .y(0.1)
       .ySeries(lineChartSeriesInfo)
       .backgroundColor("#e3e3e3")
       .backgroundOpacity(0.8);
@@ -15261,8 +15576,8 @@
     const chart4 = appendSvg("stacked-bar");
     const stacked = stackedBarChart()
       .data(stackedBarData)
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .subGroups(stackedSubGroups)
       .margin(margin)
       .yLabel("Grades")
@@ -15271,8 +15586,8 @@
 
     const stackedBarLegend = legend()
       .ySeries(stackedSubGroups)
-      .x(430)
-      .y(40)
+      .x(0.8)
+      .y(0.1)
       .width(100)
       .height(80)
       .pointType("rect")
@@ -15286,8 +15601,8 @@
 
     const chart5 = appendSvg("bubble");
     const bubble = bubbleChart()
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .data(bubbleData)
       .bubbleValue("GDP")
       .labelValue("Country")
@@ -15298,13 +15613,12 @@
     // .margin();
 
     const bubbleLegend = legend()
-      .x(10)
-      .y(widthHeight[1] - 100)
+      .x(0.1)
+      .y(0.1)
       .width(100)
       .height(100)
       .ySeries(bubbleYSeries)
       .legendTitle("Region");
-
 
     chart5.call(bubble);
     chart5.call(bubbleLegend);
@@ -15321,10 +15635,11 @@
       });
     }
     const activity = activityMonitorSquares()
-      .width(widthHeight[0])
-      .height(widthHeight[1])
+      // .width(widthHeight[0])
+      // .height(widthHeight[1])
       .data(weeklyData)
       .xValue((d) => d.weekNumber)
+      .colorValue("activity")
       .tooltipValue((d) => {
         // console.log(d)
         let date =
@@ -15332,8 +15647,8 @@
             ? moment(`2024W0${d.weekNumber}`).format("ll")
             : moment(`2024W${d.weekNumber}`).format("ll");
 
-        return `Week Beginning: ${date}`;
-      });
+        return `Week Beginning: ${date}<br> Activities : ${d["activity"]}`;
+      }).title("Number of Activities per week in 2024");
     chart6.call(activity);
 
     // ------------------  Section --------------------
@@ -15355,6 +15670,9 @@
           break;
         case "bubble-svg":
           replotFunction(chartId, chart5, bubble);
+          break
+        case "activity-svg":
+          replotFunction(chartId, chart6, activity);
       }
     };
   }

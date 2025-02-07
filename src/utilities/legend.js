@@ -14,6 +14,12 @@ export const legend = () => {
     //console.log(selection);
 
     // const selection = d3.select("chart").append(svg)
+
+    const svgWidth = selection.node().getBoundingClientRect().width;
+    const svgHeight = selection.node().getBoundingClientRect().height;
+    const legendX = x*svgWidth;
+    const legendY = y*svgHeight;
+// console.log(legendX, legendY)
     const legend = selection
       .selectAll(".legend")
       .data([null])
@@ -22,19 +28,19 @@ export const legend = () => {
           enter
             .append("g")
             .attr("class", "legend")
-            .attr("transform", `translate(0, ${y})`)
+            .attr("transform", `translate(0, ${legendY})`)
             .call((enter) =>
               enter
                 .transition()
                 .duration(1000)
-                .attr("transform", `translate(${x}, ${y})`)
+                .attr("transform", `translate(${legendX}, ${legendY})`)
             ),
         (update) =>
           update.call((update) =>
             update
               .transition()
               .duration(1000)
-              .attr("transform", `translate(${x}, ${y})`)
+              .attr("transform", `translate(${legendX}, ${legendY})`)
           )
       );
 
@@ -75,7 +81,7 @@ export const legend = () => {
       return (i + 1) * (height / (ySeries.length + 1));
     };
     if (pointType === "circle") {
-      console.log("here")
+      // console.log("here")
       legendPoints
         .selectAll(".legendPoints")
         .data(ySeries)

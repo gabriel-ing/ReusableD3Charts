@@ -1,3 +1,4 @@
+import * as d3 from "d3";
 import { bubbleData } from "../data/bubbleData";
 import { lineChartData, lineChartData2020 } from "../data/lineChartData";
 import { stackedSubGroups, stackedSubGroupsAlt } from "../data/stackedBarData";
@@ -62,19 +63,19 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
     case "stacked-bar-svg":
       if (plotObj.subGroups() == stackedSubGroups) {
         plotObj.subGroups(stackedSubGroupsAlt);
-        legend.ySeries(stackedSubGroupsAlt).x(70);
+        legend.ySeries(stackedSubGroupsAlt).x(0.1);
         svg.call(plotObj);
         svg.call(legend);
       } else {
         plotObj.subGroups(stackedSubGroups);
-        legend.ySeries(stackedSubGroups).x(430);
+        legend.ySeries(stackedSubGroups).x(0.8);
         svg.call(plotObj);
         svg.call(legend);
       }
       break;
     case "bubble-svg":
-      console.log(plotObj);
-      console.log(plotObj.clustered());
+      // console.log(plotObj);
+      // console.log(plotObj.clustered());
       if (plotObj.clustered()) {
         plotObj
           .clustered(false)
@@ -84,6 +85,27 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
       } else {
         console.log("here");
         plotObj.clustered(true).data(bubbleData).title("GDP of Countries");
+        svg.call(plotObj);
+      }
+      break;
+    case "activity-svg":
+      console.log(plotObj.colors());
+      if (
+        plotObj.title() === "Number of Activities per week in 2024"
+      ) {
+        console.log(true);
+        plotObj
+          .colorRange(() => [0, 5, 10])
+          .colors([d3.interpolateRdYlGn(0), d3.interpolateRdYlGn(0.5), d3.interpolateRdYlGn(1)])
+          .title("Number of activities per week, colored by proximity to target (5 p/w)");
+        svg.call(plotObj);
+      } else {
+        console.log(false);
+        plotObj
+          .colorRange(()=> [0, d3.max(plotObj.data(), (d)=>d[plotObj.colorValue()])])
+          .colors([d3.interpolateGreens(0), d3.interpolateGreens(1)])
+          .title("Number of Activities per week in 2024");
+
         svg.call(plotObj);
       }
   }
