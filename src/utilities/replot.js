@@ -117,5 +117,12 @@ export const replotFunction = (chartId, svg, plotObj, legend = null) => {
 
         svg.call(plotObj);
       }
+      break
+    case "ticker-svg":
+      const tickerValue = document.getElementById("ticker-value").value
+      console.log(tickerValue)
+      plotObj.value(tickerValue)
+      svg.call(plotObj)
+    break
   }
 };

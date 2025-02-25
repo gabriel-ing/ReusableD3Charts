@@ -18,6 +18,9 @@ import { activityMonitorSquares } from "./charts/activityMonitorSquares.js";
 import moment from "moment";
 import { replotFunction } from "./utilities/replot.js";
 import { bubbleChart } from "./charts/bubbleChart-trc.js";
+import { Ticker } from "./charts/Ticker.js";
+import { annotator } from "./utilities/annotator.js";
+
 window.saveChart = saveChart;
 
 const getWidthHeight = (chartId) => {
@@ -178,8 +181,11 @@ function main() {
     .ySeries(bubbleYSeries)
     .legendTitle("Region");
 
-  chart5.call(bubble);
+    // const turkeyAnnotation = annotator().x1(50).y1(50).x2(100).y2(100);
+    
+    chart5.call(bubble);
   chart5.call(bubbleLegend);
+  // chart5.call(turkeyAnnotation)
   // ------------------  Section --------------------
   // Activity plot data,  calling and adding legend
 
@@ -189,7 +195,6 @@ function main() {
     weeklyData.push({
       weekNumber: i,
       activity: Math.floor(Math.random() * 10),
-      
     });
   }
   const activity = activityMonitorSquares()
@@ -212,6 +217,20 @@ function main() {
   chart6.call(activity);
 
   // ------------------  Section --------------------
+  // Activity plot data,  calling and adding legend
+
+  const chart7 = appendSvg("ticker");
+
+  const ticker = Ticker().value(30).minValue(0).maxValue(100);
+  chart7.call(ticker);
+
+  const tickerValue = document
+    .getElementById("ticker-value")
+    .addEventListener("change", (event) => {
+      ticker.value(event.target.value);
+      chart7.call(ticker);
+    });
+  // ------------------  Section --------------------
   // replotting functions
 
   window.replot = (chartId) => {
@@ -233,6 +252,9 @@ function main() {
         break;
       case "activity-svg":
         replotFunction(chartId, chart6, activity);
+        break;
+      // case "ticker-svg":
+      //   replotFunction(chartId, chart7, ticker)
     }
   };
 }

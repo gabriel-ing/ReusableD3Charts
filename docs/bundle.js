@@ -71,6 +71,23 @@
     return x === null ? NaN : +x;
   }
 
+  function* numbers(values, valueof) {
+    if (valueof === undefined) {
+      for (let value of values) {
+        if (value != null && (value = +value) >= value) {
+          yield value;
+        }
+      }
+    } else {
+      let index = -1;
+      for (let value of values) {
+        if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+          yield value;
+        }
+      }
+    }
+  }
+
   const ascendingBisect = bisector(ascending$1);
   const bisectRight = ascendingBisect.right;
   bisector(number$3).center;
@@ -151,6 +168,20 @@
     return value !== null && typeof value === "object" ? value.valueOf() : value;
   }
 
+  function compareDefined(compare = ascending$1) {
+    if (compare === ascending$1) return ascendingDefined;
+    if (typeof compare !== "function") throw new TypeError("compare is not a function");
+    return (a, b) => {
+      const x = compare(a, b);
+      if (x || x === 0) return x;
+      return (compare(b, b) === 0) - (compare(a, a) === 0);
+    };
+  }
+
+  function ascendingDefined(a, b) {
+    return (a == null || !(a >= a)) - (b == null || !(b >= b)) || (a < b ? -1 : a > b ? 1 : 0);
+  }
+
   const e10 = Math.sqrt(50),
       e5 = Math.sqrt(10),
       e2 = Math.sqrt(2);
@@ -207,7 +238,7 @@
     return (reverse ? -1 : 1) * (inc < 0 ? 1 / -inc : inc);
   }
 
-  function max(values, valueof) {
+  function max$1(values, valueof) {
     let max;
     if (valueof === undefined) {
       for (const value of values) {
@@ -228,7 +259,7 @@
     return max;
   }
 
-  function min(values, valueof) {
+  function min$1(values, valueof) {
     let min;
     if (valueof === undefined) {
       for (const value of values) {
@@ -247,6 +278,75 @@
       }
     }
     return min;
+  }
+
+  // Based on https://github.com/mourner/quickselect
+  // ISC license, Copyright 2018 Vladimir Agafonkin.
+  function quickselect(array, k, left = 0, right = Infinity, compare) {
+    k = Math.floor(k);
+    left = Math.floor(Math.max(0, left));
+    right = Math.floor(Math.min(array.length - 1, right));
+
+    if (!(left <= k && k <= right)) return array;
+
+    compare = compare === undefined ? ascendingDefined : compareDefined(compare);
+
+    while (right > left) {
+      if (right - left > 600) {
+        const n = right - left + 1;
+        const m = k - left + 1;
+        const z = Math.log(n);
+        const s = 0.5 * Math.exp(2 * z / 3);
+        const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+        const newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+        const newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+        quickselect(array, k, newLeft, newRight, compare);
+      }
+
+      const t = array[k];
+      let i = left;
+      let j = right;
+
+      swap(array, left, k);
+      if (compare(array[right], t) > 0) swap(array, left, right);
+
+      while (i < j) {
+        swap(array, i, j), ++i, --j;
+        while (compare(array[i], t) < 0) ++i;
+        while (compare(array[j], t) > 0) --j;
+      }
+
+      if (compare(array[left], t) === 0) swap(array, left, j);
+      else ++j, swap(array, j, right);
+
+      if (j <= k) left = j + 1;
+      if (k <= j) right = j - 1;
+    }
+
+    return array;
+  }
+
+  function swap(array, i, j) {
+    const t = array[i];
+    array[i] = array[j];
+    array[j] = t;
+  }
+
+  function quantile(values, p, valueof) {
+    values = Float64Array.from(numbers(values, valueof));
+    if (!(n = values.length) || isNaN(p = +p)) return;
+    if (p <= 0 || n < 2) return min$1(values);
+    if (p >= 1) return max$1(values);
+    var n,
+        i = (n - 1) * p,
+        i0 = Math.floor(i),
+        value0 = max$1(quickselect(values, i0).subarray(0, i0 + 1)),
+        value1 = min$1(values.subarray(i0 + 1));
+    return value0 + (value1 - value0) * (i - i0);
+  }
+
+  function median(values, valueof) {
+    return quantile(values, 0.5, valueof);
   }
 
   function range(start, stop, step) {
@@ -271,7 +371,7 @@
       right = 2,
       bottom = 3,
       left = 4,
-      epsilon$1 = 1e-6;
+      epsilon$2 = 1e-6;
 
   function translateX(x) {
     return "translate(" + x + ",0)";
@@ -345,11 +445,11 @@
         text = text.transition(context);
 
         tickExit = tickExit.transition(context)
-            .attr("opacity", epsilon$1)
+            .attr("opacity", epsilon$2)
             .attr("transform", function(d) { return isFinite(d = position(d)) ? transform(d + offset) : this.getAttribute("transform"); });
 
         tickEnter
-            .attr("opacity", epsilon$1)
+            .attr("opacity", epsilon$2)
             .attr("transform", function(d) { var p = this.parentNode.__axis; return transform((p && isFinite(p = p(d)) ? p : position(d)) + offset); });
       }
 
@@ -3191,10 +3291,10 @@
   selection.prototype.interrupt = selection_interrupt;
   selection.prototype.transition = selection_transition;
 
-  const pi = Math.PI,
-      tau = 2 * pi,
-      epsilon = 1e-6,
-      tauEpsilon = tau - epsilon;
+  const pi$1 = Math.PI,
+      tau$1 = 2 * pi$1,
+      epsilon$1 = 1e-6,
+      tauEpsilon = tau$1 - epsilon$1;
 
   function append(strings) {
     this._ += strings[0];
@@ -3261,12 +3361,12 @@
       }
 
       // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-      else if (!(l01_2 > epsilon));
+      else if (!(l01_2 > epsilon$1));
 
       // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
       // Equivalently, is (x1,y1) coincident with (x2,y2)?
       // Or, is the radius zero? Line to (x1,y1).
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$1) || !r) {
         this._append`L${this._x1 = x1},${this._y1 = y1}`;
       }
 
@@ -3278,12 +3378,12 @@
             l20_2 = x20 * x20 + y20 * y20,
             l21 = Math.sqrt(l21_2),
             l01 = Math.sqrt(l01_2),
-            l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+            l = r * Math.tan((pi$1 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
             t01 = l / l01,
             t21 = l / l21;
 
         // If the start tangent is not coincident with (x0,y0), line to.
-        if (Math.abs(t01 - 1) > epsilon) {
+        if (Math.abs(t01 - 1) > epsilon$1) {
           this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
         }
 
@@ -3309,7 +3409,7 @@
       }
 
       // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-      else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+      else if (Math.abs(this._x1 - x0) > epsilon$1 || Math.abs(this._y1 - y0) > epsilon$1) {
         this._append`L${x0},${y0}`;
       }
 
@@ -3317,7 +3417,7 @@
       if (!r) return;
 
       // Does the angle go the wrong way? Flip the direction.
-      if (da < 0) da = da % tau + tau;
+      if (da < 0) da = da % tau$1 + tau$1;
 
       // Is this a complete circle? Draw two arcs to complete the circle.
       if (da > tauEpsilon) {
@@ -3325,8 +3425,8 @@
       }
 
       // Is this arc non-empty? Draw an arc!
-      else if (da > epsilon) {
-        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x + r * Math.cos(a1)},${this._y1 = y + r * Math.sin(a1)}`;
+      else if (da > epsilon$1) {
+        this._append`A${r},${r},0,${+(da >= pi$1)},${cw},${this._x1 = x + r * Math.cos(a1)},${this._y1 = y + r * Math.sin(a1)}`;
       }
     }
     rect(x, y, w, h) {
@@ -4690,7 +4790,7 @@
     return scale;
   }
 
-  function sqrt() {
+  function sqrt$1() {
     return pow.apply(null, arguments).exponent(0.5);
   }
 
@@ -5877,6 +5977,27 @@
     };
   }
 
+  const abs = Math.abs;
+  const atan2 = Math.atan2;
+  const cos = Math.cos;
+  const max = Math.max;
+  const min = Math.min;
+  const sin = Math.sin;
+  const sqrt = Math.sqrt;
+
+  const epsilon = 1e-12;
+  const pi = Math.PI;
+  const halfPi = pi / 2;
+  const tau = 2 * pi;
+
+  function acos(x) {
+    return x > 1 ? 0 : x < -1 ? pi : Math.acos(x);
+  }
+
+  function asin(x) {
+    return x >= 1 ? halfPi : x <= -1 ? -halfPi : Math.asin(x);
+  }
+
   function withPath(shape) {
     let digits = 3;
 
@@ -5893,6 +6014,271 @@
     };
 
     return () => new Path(digits);
+  }
+
+  function arcInnerRadius(d) {
+    return d.innerRadius;
+  }
+
+  function arcOuterRadius(d) {
+    return d.outerRadius;
+  }
+
+  function arcStartAngle(d) {
+    return d.startAngle;
+  }
+
+  function arcEndAngle(d) {
+    return d.endAngle;
+  }
+
+  function arcPadAngle(d) {
+    return d && d.padAngle; // Note: optional!
+  }
+
+  function intersect(x0, y0, x1, y1, x2, y2, x3, y3) {
+    var x10 = x1 - x0, y10 = y1 - y0,
+        x32 = x3 - x2, y32 = y3 - y2,
+        t = y32 * x10 - x32 * y10;
+    if (t * t < epsilon) return;
+    t = (x32 * (y0 - y2) - y32 * (x0 - x2)) / t;
+    return [x0 + t * x10, y0 + t * y10];
+  }
+
+  // Compute perpendicular offset line of length rc.
+  // http://mathworld.wolfram.com/Circle-LineIntersection.html
+  function cornerTangents(x0, y0, x1, y1, r1, rc, cw) {
+    var x01 = x0 - x1,
+        y01 = y0 - y1,
+        lo = (cw ? rc : -rc) / sqrt(x01 * x01 + y01 * y01),
+        ox = lo * y01,
+        oy = -lo * x01,
+        x11 = x0 + ox,
+        y11 = y0 + oy,
+        x10 = x1 + ox,
+        y10 = y1 + oy,
+        x00 = (x11 + x10) / 2,
+        y00 = (y11 + y10) / 2,
+        dx = x10 - x11,
+        dy = y10 - y11,
+        d2 = dx * dx + dy * dy,
+        r = r1 - rc,
+        D = x11 * y10 - x10 * y11,
+        d = (dy < 0 ? -1 : 1) * sqrt(max(0, r * r * d2 - D * D)),
+        cx0 = (D * dy - dx * d) / d2,
+        cy0 = (-D * dx - dy * d) / d2,
+        cx1 = (D * dy + dx * d) / d2,
+        cy1 = (-D * dx + dy * d) / d2,
+        dx0 = cx0 - x00,
+        dy0 = cy0 - y00,
+        dx1 = cx1 - x00,
+        dy1 = cy1 - y00;
+
+    // Pick the closer of the two intersection points.
+    // TODO Is there a faster way to determine which intersection to use?
+    if (dx0 * dx0 + dy0 * dy0 > dx1 * dx1 + dy1 * dy1) cx0 = cx1, cy0 = cy1;
+
+    return {
+      cx: cx0,
+      cy: cy0,
+      x01: -ox,
+      y01: -oy,
+      x11: cx0 * (r1 / r - 1),
+      y11: cy0 * (r1 / r - 1)
+    };
+  }
+
+  function arc() {
+    var innerRadius = arcInnerRadius,
+        outerRadius = arcOuterRadius,
+        cornerRadius = constant(0),
+        padRadius = null,
+        startAngle = arcStartAngle,
+        endAngle = arcEndAngle,
+        padAngle = arcPadAngle,
+        context = null,
+        path = withPath(arc);
+
+    function arc() {
+      var buffer,
+          r,
+          r0 = +innerRadius.apply(this, arguments),
+          r1 = +outerRadius.apply(this, arguments),
+          a0 = startAngle.apply(this, arguments) - halfPi,
+          a1 = endAngle.apply(this, arguments) - halfPi,
+          da = abs(a1 - a0),
+          cw = a1 > a0;
+
+      if (!context) context = buffer = path();
+
+      // Ensure that the outer radius is always larger than the inner radius.
+      if (r1 < r0) r = r1, r1 = r0, r0 = r;
+
+      // Is it a point?
+      if (!(r1 > epsilon)) context.moveTo(0, 0);
+
+      // Or is it a circle or annulus?
+      else if (da > tau - epsilon) {
+        context.moveTo(r1 * cos(a0), r1 * sin(a0));
+        context.arc(0, 0, r1, a0, a1, !cw);
+        if (r0 > epsilon) {
+          context.moveTo(r0 * cos(a1), r0 * sin(a1));
+          context.arc(0, 0, r0, a1, a0, cw);
+        }
+      }
+
+      // Or is it a circular or annular sector?
+      else {
+        var a01 = a0,
+            a11 = a1,
+            a00 = a0,
+            a10 = a1,
+            da0 = da,
+            da1 = da,
+            ap = padAngle.apply(this, arguments) / 2,
+            rp = (ap > epsilon) && (padRadius ? +padRadius.apply(this, arguments) : sqrt(r0 * r0 + r1 * r1)),
+            rc = min(abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
+            rc0 = rc,
+            rc1 = rc,
+            t0,
+            t1;
+
+        // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
+        if (rp > epsilon) {
+          var p0 = asin(rp / r0 * sin(ap)),
+              p1 = asin(rp / r1 * sin(ap));
+          if ((da0 -= p0 * 2) > epsilon) p0 *= (cw ? 1 : -1), a00 += p0, a10 -= p0;
+          else da0 = 0, a00 = a10 = (a0 + a1) / 2;
+          if ((da1 -= p1 * 2) > epsilon) p1 *= (cw ? 1 : -1), a01 += p1, a11 -= p1;
+          else da1 = 0, a01 = a11 = (a0 + a1) / 2;
+        }
+
+        var x01 = r1 * cos(a01),
+            y01 = r1 * sin(a01),
+            x10 = r0 * cos(a10),
+            y10 = r0 * sin(a10);
+
+        // Apply rounded corners?
+        if (rc > epsilon) {
+          var x11 = r1 * cos(a11),
+              y11 = r1 * sin(a11),
+              x00 = r0 * cos(a00),
+              y00 = r0 * sin(a00),
+              oc;
+
+          // Restrict the corner radius according to the sector angle. If this
+          // intersection fails, it’s probably because the arc is too small, so
+          // disable the corner radius entirely.
+          if (da < pi) {
+            if (oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)) {
+              var ax = x01 - oc[0],
+                  ay = y01 - oc[1],
+                  bx = x11 - oc[0],
+                  by = y11 - oc[1],
+                  kc = 1 / sin(acos((ax * bx + ay * by) / (sqrt(ax * ax + ay * ay) * sqrt(bx * bx + by * by))) / 2),
+                  lc = sqrt(oc[0] * oc[0] + oc[1] * oc[1]);
+              rc0 = min(rc, (r0 - lc) / (kc - 1));
+              rc1 = min(rc, (r1 - lc) / (kc + 1));
+            } else {
+              rc0 = rc1 = 0;
+            }
+          }
+        }
+
+        // Is the sector collapsed to a line?
+        if (!(da1 > epsilon)) context.moveTo(x01, y01);
+
+        // Does the sector’s outer ring have rounded corners?
+        else if (rc1 > epsilon) {
+          t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
+          t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
+
+          context.moveTo(t0.cx + t0.x01, t0.cy + t0.y01);
+
+          // Have the corners merged?
+          if (rc1 < rc) context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw);
+
+          // Otherwise, draw the two corners and the ring.
+          else {
+            context.arc(t0.cx, t0.cy, rc1, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw);
+            context.arc(0, 0, r1, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), !cw);
+            context.arc(t1.cx, t1.cy, rc1, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw);
+          }
+        }
+
+        // Or is the outer ring just a circular arc?
+        else context.moveTo(x01, y01), context.arc(0, 0, r1, a01, a11, !cw);
+
+        // Is there no inner ring, and it’s a circular sector?
+        // Or perhaps it’s an annular sector collapsed due to padding?
+        if (!(r0 > epsilon) || !(da0 > epsilon)) context.lineTo(x10, y10);
+
+        // Does the sector’s inner ring (or point) have rounded corners?
+        else if (rc0 > epsilon) {
+          t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
+          t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
+
+          context.lineTo(t0.cx + t0.x01, t0.cy + t0.y01);
+
+          // Have the corners merged?
+          if (rc0 < rc) context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t1.y01, t1.x01), !cw);
+
+          // Otherwise, draw the two corners and the ring.
+          else {
+            context.arc(t0.cx, t0.cy, rc0, atan2(t0.y01, t0.x01), atan2(t0.y11, t0.x11), !cw);
+            context.arc(0, 0, r0, atan2(t0.cy + t0.y11, t0.cx + t0.x11), atan2(t1.cy + t1.y11, t1.cx + t1.x11), cw);
+            context.arc(t1.cx, t1.cy, rc0, atan2(t1.y11, t1.x11), atan2(t1.y01, t1.x01), !cw);
+          }
+        }
+
+        // Or is the inner ring just a circular arc?
+        else context.arc(0, 0, r0, a10, a00, cw);
+      }
+
+      context.closePath();
+
+      if (buffer) return context = null, buffer + "" || null;
+    }
+
+    arc.centroid = function() {
+      var r = (+innerRadius.apply(this, arguments) + +outerRadius.apply(this, arguments)) / 2,
+          a = (+startAngle.apply(this, arguments) + +endAngle.apply(this, arguments)) / 2 - pi / 2;
+      return [cos(a) * r, sin(a) * r];
+    };
+
+    arc.innerRadius = function(_) {
+      return arguments.length ? (innerRadius = typeof _ === "function" ? _ : constant(+_), arc) : innerRadius;
+    };
+
+    arc.outerRadius = function(_) {
+      return arguments.length ? (outerRadius = typeof _ === "function" ? _ : constant(+_), arc) : outerRadius;
+    };
+
+    arc.cornerRadius = function(_) {
+      return arguments.length ? (cornerRadius = typeof _ === "function" ? _ : constant(+_), arc) : cornerRadius;
+    };
+
+    arc.padRadius = function(_) {
+      return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant(+_), arc) : padRadius;
+    };
+
+    arc.startAngle = function(_) {
+      return arguments.length ? (startAngle = typeof _ === "function" ? _ : constant(+_), arc) : startAngle;
+    };
+
+    arc.endAngle = function(_) {
+      return arguments.length ? (endAngle = typeof _ === "function" ? _ : constant(+_), arc) : endAngle;
+    };
+
+    arc.padAngle = function(_) {
+      return arguments.length ? (padAngle = typeof _ === "function" ? _ : constant(+_), arc) : padAngle;
+    };
+
+    arc.context = function(_) {
+      return arguments.length ? ((context = _ == null ? null : _), arc) : context;
+    };
+
+    return arc;
   }
 
   function array(x) {
@@ -6153,6 +6539,7 @@
       "#e84393",
       "#0984e3",
     ];
+    let colorType;
     let xLabel;
     let yLabel;
     let tooltipValue = (d) => null;
@@ -6167,12 +6554,13 @@
     let backgroundOnClick = () => null;
     let title;
 
+    let colorRange = ["white", "#f7f5c5", "red"];
     const my = (selection) => {
       // selection.attr("width", width).attr("height", height);
 
       const width = selection.node().getBoundingClientRect().width;
       const height = selection.node().getBoundingClientRect().height;
-      console.log(width, height);
+      // console.log(width, height);
       selection.attr("viewBox", `0 0 ${width} ${height}`);
       selection
         .selectAll(".backgroundRect")
@@ -6211,8 +6599,8 @@
       } else {
         x = linear()
           .domain([
-            min(filteredData, (d) => d[xValue]),
-            max(filteredData, (d) => d[xValue]),
+            min$1(filteredData, (d) => d[xValue]),
+            max$1(filteredData, (d) => d[xValue]),
           ])
           .range([margin.left, width - margin.right]);
       }
@@ -6224,7 +6612,7 @@
           .padding(0.2);
       } else {
         y = linear()
-          .domain([0, max(filteredData, (d) => d[yValue])])
+          .domain([0, max$1(filteredData, (d) => d[yValue])])
           .range([height - margin.bottom, margin.top]);
       }
       /* 
@@ -6240,11 +6628,20 @@
           
           
           */
-
-      const colorScale = ordinal()
-        .domain(filteredData.map(colorValue))
-        .range(colorList);
-
+      let colorScale;
+      if (colorType === "category") {
+        colorScale = ordinal()
+          .domain(filteredData.map((d) => d[colorValue]))
+          .range(colorList);
+      } else {
+        colorScale = linear()
+          .domain([
+            min$1(filteredData, (d) => d[colorValue]),
+            median(filteredData, (d) => d[colorValue]),
+            max$1(filteredData, (d) => d[colorValue])]
+          )
+          .range(colorRange);
+      }
       // marks.x = x(marks.x);
       // marks.y = y(marks.y) ;
       // marks.color = colorScale(marks.color);
@@ -6252,8 +6649,10 @@
       const marks = filteredData.map((d) => ({
         x: x(d[xValue]),
         y: y(d[yValue]),
+        xValue: d[xValue],
+        yValue: d[yValue],
         r: radius,
-        color: colorScale(colorValue(d)),
+        color: colorScale(d[colorValue]),
         tooltip: tooltipValue(d),
       }));
 
@@ -6272,7 +6671,7 @@
               .attr("cy", (d) => d.y)
               .attr("fill", (d) => d.color)
               .attr("stroke", "black")
-              .attr("stroke-width", 0.5)
+              .attr("stroke-width", 0.05)
               .attr("r", 0)
               .on("mouseover", (event, d) => {
                 if (d.tooltip) {
@@ -6437,6 +6836,13 @@
     my.title = function (_) {
       return arguments.length ? ((title = _), my) : title;
     };
+    my.colorType = function (_) {
+      return arguments.length ? ((colorType = _), my) : colorType;
+    };
+
+    my.colorRange = function (_) {
+      return arguments.length ? ((colorRange = _), my) : colorRange;
+    };
     return my;
   };
 
@@ -6481,7 +6887,7 @@
         .padding(0.2);
 
       heightScale = linear()
-        .domain([0, max(filteredData, (d) => d[yValue])])
+        .domain([0, max$1(filteredData, (d) => d[yValue])])
         .range([axisHeight, 0]);
 
       const marks = filteredData.map((d) => ({
@@ -6832,11 +7238,11 @@
           .range([margin.left, width - margin.right]);
       } else {
         linear()
-          .domain([min(filteredData, xValue), max(filteredData, xValue)])
+          .domain([min$1(filteredData, xValue), max$1(filteredData, xValue)])
           .range([margin.left, width - margin.right]);
       }
 
-      const maxY = max(ySeries.map((d) => max(filteredData, d.yValue)));
+      const maxY = max$1(ySeries.map((d) => max$1(filteredData, d.yValue)));
 
       const yScale = linear()
         .domain([0, maxY])
@@ -6850,7 +7256,7 @@
           .range([margin.left, width - margin.right]);
       } else {
         xScale = linear()
-          .domain([0, max(filteredData, xValue)])
+          .domain([0, max$1(filteredData, xValue)])
           .range([margin.left, width - margin.right]);
       }
       const t = transition().duration(1000);
@@ -7311,7 +7717,7 @@
       const sums = data.map((d) =>
         subs.reduce((sum, key) => sum + Number(d[key]), 0)
       );
-      const maxY = max(sums);
+      const maxY = max$1(sums);
 
       const xScale = band()
         .domain(groups)
@@ -14669,7 +15075,7 @@
     let colorBar = true;
     let colors = [Greens(0), Greens(1)];
     let colorValue;
-    let colorRange = () => [0, max(data, (d) => d[colorValue])];
+    let colorRange = () => [0, max$1(data, (d) => d[colorValue])];
     let cbarLabel = "Activities Per Week";
     const my = (selection) => {
       // selection.attr("width", width).attr("height", height);
@@ -14746,7 +15152,7 @@
 
       const colorScale = linear().domain(colorRange()).range(colors);
 
-      const minDimension = min([xScale.bandwidth(), yScale.bandwidth()]);
+      const minDimension = min$1([xScale.bandwidth(), yScale.bandwidth()]);
       let marks;
       if (months) {
         let ypos = 0;
@@ -15155,13 +15561,20 @@
             .year(2024)
             .colorRange(() => [
               0,
-              max(plotObj.data(), (d) => d[plotObj.colorValue()]),
+              max$1(plotObj.data(), (d) => d[plotObj.colorValue()]),
             ])
             .colors([Greens(0), Greens(1)])
             .title("Number of Activities per week in 2024");
 
           svg.call(plotObj);
         }
+        break
+      case "ticker-svg":
+        const tickerValue = document.getElementById("ticker-value").value;
+        console.log(tickerValue);
+        plotObj.value(tickerValue);
+        svg.call(plotObj);
+      break
     }
   };
 
@@ -15338,8 +15751,8 @@
         }
         // console.log(data);
 
-        const bubbleScale = sqrt()
-          .domain([0, max(data, (d) => d[bubbleValue])])
+        const bubbleScale = sqrt$1()
+          .domain([0, max$1(data, (d) => d[bubbleValue])])
           .range([0, maxRadius]);
 
         let xPos = margin.left;
@@ -15483,6 +15896,229 @@
       return arguments.length ? ((maxRadius = _), my) : maxRadius;
     };
 
+    return my;
+  };
+
+  const generateTeardropPath = (cx, cy, r, h) => {
+    let pathD;
+
+    const tipY = cy - h + r;
+    const tipX = cx;
+    pathD = `M${tipX} ${tipY}
+           C ${tipX} ${tipY},${cx + r} ${cy}, ${cx + r} ${cy}
+           A ${r} ${r} 0 1 1 ${cx - r} ${cy}
+           C ${tipX} ${tipY},${tipX} ${tipY},${tipX} ${tipY}z`;
+    // console.log(pathD);
+    return pathD;
+  };
+
+  const Ticker = () => {
+    let value;
+    let maxValue;
+    let minValue;
+    let margin = { left: 0, top: 10, bottom: 30, right: 0 };
+    let gradations = 20;
+    let ticks;
+    let arcFill = "#e6b2ca";
+    let bgColor = "#336299";
+    let lightColor = "#f9ecf2";
+    const my = (selection) => {
+      const width = selection.node().getBoundingClientRect().width;
+      const height = selection.node().getBoundingClientRect().height;
+      const smallAxis = min$1([width, height]);
+
+      selection.attr("viewBox", `0 0 ${width} ${height}`);
+
+      const innerRadius = smallAxis * 0.4;
+      const outerRadius = smallAxis * 0.6;
+
+      // console.log(height, width, innerRadius, outerRadius);
+
+      const radialScale = linear()
+        .domain([minValue, maxValue])
+        .range([-90, 90]);
+
+      const arcAxis = selection
+        .selectAll(".arcAxis")
+        .data([null])
+        .join("g")
+
+        .attr("class", "arcAxis");
+
+      arcAxis
+        .selectAll(".arc")
+        .data([null])
+        .join("path")
+        .attr("transform", `translate(${width / 2}, ${height - margin.bottom})`)
+        .attr(
+          "d",
+          arc()({
+            innerRadius: innerRadius,
+            outerRadius: outerRadius,
+            startAngle: -Math.PI / 2,
+            endAngle: Math.PI / 2,
+          })
+        )
+        .attr("class", "arc")
+        .attr("fill", arcFill)
+        .attr("stroke", "black");
+
+      if (!ticks) {
+        ticks = range(Math.floor((maxValue - minValue) / gradations) - 1)
+          .map((d) => minValue + (d + 1) * gradations);
+        console.log(ticks);
+      }
+
+      arcAxis
+        .selectAll(".scale-ticks")
+        .data(ticks)
+        .join((enter) => {
+          const g = enter
+            .append("g")
+            .attr("class", "scale-ticks")
+            .attr("id", (d) => `value${d}`)
+            // .attr("transform", `translate(${width / 2}, ${height - margin.bottom})`)
+            .attr(
+              "transform",
+              (d) =>
+                `translate(${width / 2}, ${
+                height - margin.bottom
+              }) rotate(${radialScale(d)})`
+            );
+          g.append("path")
+            .attr(
+              "d",
+              arc()({
+                innerRadius: (outerRadius + innerRadius) / 2,
+                outerRadius: outerRadius,
+                startAngle: 0,
+                endAngle: Math.PI / 360,
+              })
+            )
+            .attr("fill", "grey")
+            .attr("class", "tick-lines");
+
+          g.append("text")
+            .attr("class", "tick-labels")
+            .text((d) => d)
+            .attr("x", 0)
+            .attr("text-anchor", "middle")
+            .attr("y", -outerRadius + (outerRadius - innerRadius) / 1.5)
+            // .attr("y", -smallAxis * 0.52)
+            .attr("font-size", "12px");
+        });
+
+      selection
+        .selectAll(".needle")
+        .data([value])
+        .join(
+          (enter) => {
+            const g = enter
+              .append("g")
+              .attr("class", "needle")
+              .attr(
+                "transform",
+                `translate(${width / 2}, ${
+                height - margin.bottom
+              }) rotate(${radialScale(minValue)})`
+              );
+
+            g.append("path")
+              .attr(
+                "d",
+                generateTeardropPath(0, 0, smallAxis * 0.05, smallAxis * 0.7)
+              )
+              .attr("fill", "#0d1926")
+              .attr("stroke", "#d9e5f2")
+              .attr("stroke-width", 0.5)
+              .attr("class", "teardrop");
+
+            g.append("circle")
+              .attr("cx", 0)
+              .attr("cy", 0)
+              .attr("r", smallAxis * 0.025)
+              .attr("fill", bgColor)
+              .attr("stroke", lightColor)
+              .attr("stroke-width", 0.5);
+
+            g.append("text")
+              .attr("x", 0)
+              .attr("y", -height * 0.7)
+              .attr("text-anchor", "middle")
+              .attr("class", "needle-label ticker-label ")
+              .attr("fill", "#0d1926")
+              .attr("stroke", lightColor)
+              .attr("stroke-width", 0.5)
+              .text((d) => d);
+
+            g.call((g) => {
+              g.transition()
+                .duration(1000)
+                .delay(100)
+                .attr(
+                  "transform",
+                  (d) =>
+                    `translate(${width / 2}, ${
+                    height - margin.bottom
+                  }) rotate(${radialScale(d)}
+                 )`
+                );
+            });
+          },
+          (update) => {
+
+            update
+              .transition()
+              .duration(1000)
+              .delay(100)
+              .attr(
+                "transform",
+                (d) =>
+                  `translate(${width / 2}, ${
+                  height - margin.bottom
+                }) rotate(${radialScale(d)}
+           )`
+              );
+            update
+              .select(".needle-label")
+              .transition()
+              .delay(1100)
+              .text((d) => d);
+          }
+        );
+
+      selection
+        .selectAll(".end-labels")
+        .data([
+          {
+            value: minValue,
+            x: width / 2 - outerRadius + (outerRadius - innerRadius) / 2,
+          },
+          {
+            value: maxValue,
+            x: width / 2 + outerRadius - (outerRadius - innerRadius) / 2,
+          },
+        ])
+        .join("text")
+        .attr("class", "end-labels")
+        .attr("x", (d) => d.x)
+        .attr("text-anchor", "middle")
+        .attr("y", height - margin.bottom - 5)
+        .text((d) => d.value);
+
+      // , ${
+      //           height - margin.bottom");
+    };
+
+    my.value = function (_) {
+      return arguments.length ? ((value = _), my) : value;
+    };
+    my.maxValue = function (_) {
+      return arguments.length ? ((maxValue = _), my) : maxValue;
+    };
+    my.minValue = function (_) {
+      return arguments.length ? ((minValue = _), my) : minValue;
+    };
     return my;
   };
 
@@ -15645,8 +16281,11 @@
       .ySeries(bubbleYSeries)
       .legendTitle("Region");
 
-    chart5.call(bubble);
+      // const turkeyAnnotation = annotator().x1(50).y1(50).x2(100).y2(100);
+      
+      chart5.call(bubble);
     chart5.call(bubbleLegend);
+    // chart5.call(turkeyAnnotation)
     // ------------------  Section --------------------
     // Activity plot data,  calling and adding legend
 
@@ -15656,7 +16295,6 @@
       weeklyData.push({
         weekNumber: i,
         activity: Math.floor(Math.random() * 10),
-        
       });
     }
     const activity = activityMonitorSquares()
@@ -15679,6 +16317,20 @@
     chart6.call(activity);
 
     // ------------------  Section --------------------
+    // Activity plot data,  calling and adding legend
+
+    const chart7 = appendSvg("ticker");
+
+    const ticker = Ticker().value(30).minValue(0).maxValue(100);
+    chart7.call(ticker);
+
+    document
+      .getElementById("ticker-value")
+      .addEventListener("change", (event) => {
+        ticker.value(event.target.value);
+        chart7.call(ticker);
+      });
+    // ------------------  Section --------------------
     // replotting functions
 
     window.replot = (chartId) => {
@@ -15700,6 +16352,9 @@
           break;
         case "activity-svg":
           replotFunction(chartId, chart6, activity);
+          break;
+        // case "ticker-svg":
+        //   replotFunction(chartId, chart7, ticker)
       }
     };
   }

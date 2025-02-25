@@ -20,6 +20,7 @@ export const scatterPlot = () => {
     "#e84393",
     "#0984e3",
   ];
+  let colorType;
   let xLabel;
   let yLabel;
   let tooltipValue = (d) => null;
@@ -34,12 +35,13 @@ export const scatterPlot = () => {
   let backgroundOnClick = () => null;
   let title;
 
+  let colorRange = ["white", "#f7f5c5", "red"];
   const my = (selection) => {
     // selection.attr("width", width).attr("height", height);
 
     const width = selection.node().getBoundingClientRect().width;
     const height = selection.node().getBoundingClientRect().height;
-    console.log(width, height);
+    // console.log(width, height);
     selection.attr("viewBox", `0 0 ${width} ${height}`);
     const backgroundRect = selection
       .selectAll(".backgroundRect")
@@ -112,12 +114,22 @@ export const scatterPlot = () => {
         
         
         */
-
-    const colorScale = d3
-      .scaleOrdinal()
-      .domain(filteredData.map(colorValue))
-      .range(colorList);
-
+    let colorScale;
+    if (colorType === "category") {
+      colorScale = d3
+        .scaleOrdinal()
+        .domain(filteredData.map((d) => d[colorValue]))
+        .range(colorList);
+    } else {
+      colorScale = d3
+        .scaleLinear()
+        .domain([
+          d3.min(filteredData, (d) => d[colorValue]),
+          d3.median(filteredData, (d) => d[colorValue]),
+          d3.max(filteredData, (d) => d[colorValue])]
+        )
+        .range(colorRange);
+    }
     // marks.x = x(marks.x);
     // marks.y = y(marks.y) ;
     // marks.color = colorScale(marks.color);
@@ -125,8 +137,10 @@ export const scatterPlot = () => {
     const marks = filteredData.map((d) => ({
       x: x(d[xValue]),
       y: y(d[yValue]),
+      xValue: d[xValue],
+      yValue: d[yValue],
       r: radius,
-      color: colorScale(colorValue(d)),
+      color: colorScale(d[colorValue]),
       tooltip: tooltipValue(d),
     }));
 
@@ -145,7 +159,7 @@ export const scatterPlot = () => {
             .attr("cy", (d) => d.y)
             .attr("fill", (d) => d.color)
             .attr("stroke", "black")
-            .attr("stroke-width", 0.5)
+            .attr("stroke-width", 0.05)
             .attr("r", 0)
             .on("mouseover", (event, d) => {
               if (d.tooltip) {
@@ -309,6 +323,13 @@ export const scatterPlot = () => {
   };
   my.title = function (_) {
     return arguments.length ? ((title = _), my) : title;
+  };
+  my.colorType = function (_) {
+    return arguments.length ? ((colorType = _), my) : colorType;
+  };
+
+  my.colorRange = function (_) {
+    return arguments.length ? ((colorRange = _), my) : colorRange;
   };
   return my;
 };
